@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%" id="z-sports-animated-logo">
+  <defs>
+    <!-- Gradients & Filters -->
+    <linearGradient id="zs-orangeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9a3c"/>
+      <stop offset="50%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <linearGradient id="zs-goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="zs-darkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <linearGradient id="zs-neonStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffedd5"/>
+      <stop offset="50%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#c2410c"/>
+    </linearGradient>
+
+    <!-- Glowing Drop Shadow Filters -->
+    <filter id="zs-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="zs-heavyGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="15" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <style>
+      @keyframes zs-spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes zs-spin-reverse {
+        from { transform: rotate(360deg); }
+        to { transform: rotate(0deg); }
+      }
+      @keyframes zs-pulse {
+        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(249,115,22,0.6)); }
+        50% { transform: scale(1.025); filter: drop-shadow(0 0 24px rgba(249,115,22,0.95)); }
+      }
+      @keyframes zs-shimmer {
+        0% { stroke-dashoffset: 400; }
+        100% { stroke-dashoffset: 0; }
+      }
+      @keyframes zs-float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-7px); }
+      }
+      /* 5-SECOND FLIP ANIMATION */
+      @keyframes zs-flip-5s {
+        0%, 70% {
+          transform: perspective(600px) rotateY(0deg);
+        }
+        75% {
+          transform: perspective(600px) rotateY(90deg) scale(0.92);
+        }
+        82% {
+          transform: perspective(600px) rotateY(180deg) scale(1.08);
+        }
+        89% {
+          transform: perspective(600px) rotateY(270deg) scale(0.92);
+        }
+        95%, 100% {
+          transform: perspective(600px) rotateY(360deg);
+        }
+      }
+
+      .zs-ring-outer {
+        transform-origin: 250px 250px;
+        animation: zs-spin-slow 24s linear infinite;
+      }
+      .zs-ring-inner {
+        transform-origin: 250px 250px;
+        animation: zs-spin-reverse 16s linear infinite;
+      }
+      .zs-core-group {
+        transform-origin: 250px 250px;
+        animation: zs-pulse 3.5s ease-in-out infinite;
+      }
+      .zs-z-flipper {
+        transform-origin: 250px 250px;
+        transform-box: view-box;
+        animation: zs-flip-5s 5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+      }
+      .zs-floating {
+        animation: zs-float 4.5s ease-in-out infinite;
+      }
+      .zs-dash-line {
+        stroke-dasharray: 20 12;
+        animation: zs-shimmer 6s linear infinite;
+      }
+    </style>
+  </defs>
+
+  <!-- Ambient Background Glow -->
+  <circle cx="250" cy="250" r="195" fill="url(#zs-orangeGrad)" opacity="0.14" filter="url(#zs-heavyGlow)"/>
+
+  <!-- Outer Orbiting Athletic Rings -->
+  <g class="zs-ring-outer">
+    <circle cx="250" cy="250" r="215" fill="none" stroke="url(#zs-orangeGrad)" stroke-width="2.5" stroke-dasharray="140 40 30 50" opacity="0.75"/>
+    <circle cx="250" cy="35" r="5" fill="#fef08a" filter="url(#zs-glow)"/>
+    <circle cx="465" cy="250" r="6" fill="#f97316" filter="url(#zs-glow)"/>
+    <circle cx="250" cy="465" r="4.5" fill="#fb923c" filter="url(#zs-glow)"/>
+    <circle cx="35" cy="250" r="5" fill="#ffedd5" filter="url(#zs-glow)"/>
+  </g>
+
+  <!-- Counter-Rotating Speed Ring -->
+  <g class="zs-ring-inner">
+    <circle cx="250" cy="250" r="185" fill="none" stroke="url(#zs-goldGrad)" stroke-width="1.8" stroke-dasharray="80 25 15 35" opacity="0.65"/>
+    <!-- Stadium tick notches -->
+    <path d="M250,55 L250,65 M250,435 L250,445 M55,250 L65,250 M435,250 L445,250" stroke="#f97316" stroke-width="2.5"/>
+    <circle cx="95" cy="140" r="4" fill="#ffedd5" filter="url(#zs-glow)"/>
+    <circle cx="405" cy="360" r="4.5" fill="#f59e0b" filter="url(#zs-glow)"/>
+  </g>
+
+  <!-- Central Crest Shield Badge -->
+  <g class="zs-core-group">
+    <!-- Dark Crest Background -->
+    <polygon points="250,75 390,145 390,320 250,425 110,320 110,145" fill="url(#zs-darkGrad)" stroke="url(#zs-orangeGrad)" stroke-width="4.5" filter="url(#zs-glow)"/>
+    
+    <!-- Inner Accent Crest Border -->
+    <polygon points="250,95 370,158 370,308 250,398 130,308 130,158" fill="none" stroke="#27272a" stroke-width="2" stroke-dasharray="6 4"/>
+
+    <!-- Wing / Speed Chevron Highlights on Crest -->
+    <path d="M125,230 L160,250 L125,270" stroke="url(#zs-orangeGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M375,230 L340,250 L375,270" stroke="url(#zs-orangeGrad)" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <!-- Top Crown Star -->
+    <polygon points="250,110 254,122 267,122 256,130 260,142 250,134 240,142 244,130 233,122 246,122" fill="url(#zs-goldGrad)" filter="url(#zs-glow)"/>
+
+    <!-- Athletic Wordmark Banner at bottom of shield -->
+    <rect x="180" y="375" width="140" height="28" rx="4" fill="#09090b" stroke="url(#zs-orangeGrad)" stroke-width="1.5"/>
+    <text x="250" y="394" text-anchor="middle" fill="#ffffff" font-family="'Poppins', sans-serif" font-size="13" font-weight="900" letter-spacing="4">SPORTS</text>
+
+    <!-- THE DYNAMIC "Z" LETTER GROUP (CORRECT UPRIGHT SILHOUETTE WITH 5-SEC 3D FLIP) -->
+    <g class="zs-z-flipper">
+      <!-- Upright Athletic "Z" Body -->
+      <path d="M160,165 L340,165 L340,210 L232,290 L340,290 L340,335 L160,335 L160,290 L268,210 L160,210 Z" 
+            fill="url(#zs-orangeGrad)" 
+            stroke="url(#zs-neonStroke)" 
+            stroke-width="3.5" 
+            stroke-linejoin="round"
+            filter="url(#zs-glow)"/>
+
+      <!-- Inner Metallic Highlights on "Z" -->
+      <!-- Top Bar Highlight -->
+      <path d="M175,178 L325,178" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>
+      <!-- Main Diagonal Power Stroke -->
+      <path d="M315,225 L185,275" fill="none" stroke="#ffedd5" stroke-width="3" stroke-linecap="round" opacity="0.95" filter="url(#zs-glow)"/>
+      <!-- Bottom Bar Highlight -->
+      <path d="M175,322 L325,322" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.75"/>
+
+      <!-- Dynamic Lightning / Power Core in center of Z -->
+      <polygon points="253,234 240,250 248,250 244,266 260,248 251,248" fill="#ffffff" filter="url(#zs-glow)"/>
+    </g>
+  </g>
+</svg>
