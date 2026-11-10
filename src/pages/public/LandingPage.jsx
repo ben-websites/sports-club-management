@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import EnrollmentModal from "../../components/membership/EnrollmentModal";
 import EventDetailsModal from "../../components/events/EventDetailsModal";
+import Reveal from "../../components/common/Reveal";
+import ThemeToggle from "../../components/common/ThemeToggle";
 
 import {
   ArrowRight,
@@ -265,7 +267,7 @@ function LandingPage() {
 
   const faqData = [
     {
-      question: "How do I become an official member of Z Sports Club?",
+      question: "How do I become an official member of Sports Hub?",
       answer:
         "First, register a free account. Next, browse our Membership Plans section and click 'Buy Membership'. Fill out your address and emergency contact details. Once submitted, your personal Member Dashboard is immediately activated while administration reviews your application.",
     },
@@ -314,7 +316,7 @@ function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#0c0c0e] font-sans text-zinc-100">
+    <div className="page-enter min-h-screen overflow-x-clip bg-[#0c0c0e] font-sans text-zinc-100">
       <style>{`
         .sports-section-bg {
           background-size: cover;
@@ -345,23 +347,27 @@ function LandingPage() {
             : "bg-transparent"
         }`}
       >
-        <div className="mx-auto flex h-[82px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
+        <div
+          className={`mx-auto flex h-[82px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8 ${
+            isScrolled ? "" : "keep-dark"
+          }`}
+        >
           {/* LOGO */}
           <button
             onClick={scrollToTop}
             className="group flex items-center gap-3"
           >
             <div
-              className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border transition-all duration-300 ${
+              className={`flex h-12 w-[92px] items-center justify-center overflow-hidden rounded-lg border transition-all duration-300 ${
                 isScrolled
-                  ? "border-[#e4dce5] bg-white shadow-sm"
-                  : "border-white/30 bg-white/10 backdrop-blur-md"
+                  ? "border-[#e4dce5] bg-[#0c0c0e] shadow-sm"
+                  : "border-white/20 bg-black/40 backdrop-blur-md"
               }`}
             >
               <img
-                src="/z-sports-animated-logo.svg"
-                alt="Z Sports Logo"
-                className="h-full w-full object-cover p-1"
+                src="/sports-hub-logo.svg"
+                alt="Sports Hub Logo"
+                className="h-8 w-auto object-contain"
               />
             </div>
 
@@ -371,13 +377,13 @@ function LandingPage() {
                   isScrolled ? "text-[#18181b]" : "text-white"
                 }`}
               >
-                Z
+                SPORTS
                 <span
                   className={`font-light ml-1 ${
                     isScrolled ? "text-orange-500" : "text-orange-400"
                   }`}
                 >
-                  SPORTS
+                  HUB
                 </span>
               </div>
 
@@ -453,17 +459,73 @@ function LandingPage() {
                 </Link>
               </div>
             )}
+
+            <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
           </div>
 
-          {/* MOBILE */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`rounded-full p-2 lg:hidden transition ${
-              isScrolled ? "text-[#18181b]" : "text-white"
-            }`}
-          >
-            {isMobileMenuOpen ? <X size={25} /> : <Menu size={25} />}
-          </button>
+          {/* MOBILE THEME SWITCH + MENU */}
+          <div className="flex items-center gap-1.5 lg:hidden">
+            <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className={`rounded-full p-2 transition ${
+                isScrolled ? "text-[#18181b]" : "text-white"
+              }`}
+            >
+              {isMobileMenuOpen ? <X size={25} /> : <Menu size={25} />}
+            </button>
+          </div>
+        </div>
+
+        {/* MOBILE AUTH BAR (always visible under the navbar) */}
+        <div
+          className={`flex items-center gap-2.5 border-t px-4 py-2.5 lg:hidden transition-colors duration-500 ${
+            isScrolled
+              ? "border-[#eee9ee] bg-white/95 backdrop-blur-xl"
+              : "keep-dark border-white/10 bg-black/60 backdrop-blur-md"
+          }`}
+        >
+          {isAuthenticated ? (
+            <>
+              <Link
+                to={role === "admin" ? "/admin/dashboard" : "/user/dashboard"}
+                className="flex flex-1 items-center justify-center gap-2 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
+              >
+                <Home size={14} />
+                {role === "admin" ? "Admin Panel" : "Members Dashboard"}
+              </Link>
+              <button
+                onClick={logout}
+                className={`border px-4 py-2.5 text-[12px] font-semibold transition ${
+                  isScrolled
+                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
+                    : "border-white/30 text-white hover:bg-white/10"
+                }`}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={`flex-1 border py-2.5 text-center text-[12px] font-semibold transition ${
+                  isScrolled
+                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
+                    : "border-white/30 text-white hover:bg-white/10"
+                }`}
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="flex flex-1 items-center justify-center gap-1.5 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
+              >
+                Get Started
+                <ArrowRight size={13} />
+              </Link>
+            </>
+          )}
         </div>
 
         {/* MOBILE MENU */}
@@ -484,41 +546,6 @@ function LandingPage() {
                 {link.name}
               </button>
             ))}
-
-            <div className="pt-4">
-              {isAuthenticated ? (
-                <div className="space-y-2">
-                  <Link
-                    to={role === "admin" ? "/admin/dashboard" : "/user/dashboard"}
-                    className="block w-full bg-orange-500 py-3 text-center text-sm font-bold text-black hover:bg-black hover:text-white transition"
-                  >
-                    Go to {role === "admin" ? "Admin Panel" : "Members Dashboard"}
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="block w-full border border-[#dcd2df] py-3 text-center text-sm font-semibold text-[#18181b] hover:bg-zinc-100 transition"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <Link
-                    to="/login"
-                    className="border border-[#dcd2df] py-3 text-center text-sm font-semibold text-[#18181b] hover:bg-zinc-50 transition"
-                  >
-                    Login
-                  </Link>
-
-                  <Link
-                    to="/register"
-                    className="bg-[#18181b] py-3 text-center text-sm font-bold text-white hover:bg-orange-500 hover:text-black transition"
-                  >
-                    Get Started
-                  </Link>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </header>
@@ -534,11 +561,11 @@ function LandingPage() {
       {/* =========================================================
           HERO SECTION
       ========================================================= */}
-      <section id="home" className="relative min-h-[780px] overflow-hidden bg-[#09090b]">
+      <section id="home" className="keep-dark relative min-h-[780px] overflow-hidden bg-[#09090b]">
         {/* HERO BACKGROUND IMAGE */}
         <img
           src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=2200&q=90"
-          alt="Z Sports Club"
+          alt="Sports Hub Club"
           className="absolute inset-0 h-full w-full object-cover opacity-35"
         />
 
@@ -548,9 +575,9 @@ function LandingPage() {
         <div className="absolute top-1/4 right-10 h-96 w-96 rounded-full bg-orange-500/10 blur-[130px] pointer-events-none" />
 
         {/* HERO CONTENT: 2-COLUMN GRID (LOGO OPPOSITE TO WORDING) */}
-        <div className="relative z-10 mx-auto grid min-h-[780px] max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-28 pb-28 lg:grid-cols-12 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto grid min-h-[780px] max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-44 pb-28 lg:pt-28 lg:grid-cols-12 sm:px-6 lg:px-8">
           {/* LEFT: WORDING */}
-          <div className="lg:col-span-7">
+          <Reveal variant="left" className="lg:col-span-7">
             <div className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.25em] text-orange-500">
               <span className="h-px w-10 bg-orange-500" />
               Complete Sports Club Management Platform
@@ -565,7 +592,7 @@ function LandingPage() {
             </h1>
 
             <p className="mt-6 max-w-xl text-[15px] leading-8 text-zinc-300 sm:text-[16px]">
-              Z Sports Club brings athletes, administrative oversight, membership subscription workflows, monthly fee vouchers, late fine automation, and tournament bookings together through one connected system.
+              Sports Hub brings athletes, administrative oversight, membership subscription workflows, monthly fee vouchers, late fine automation, and tournament bookings together through one connected system.
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">
@@ -593,10 +620,10 @@ function LandingPage() {
                 <ArrowRight size={16} />
               </button>
             </div>
-          </div>
+          </Reveal>
 
-          {/* RIGHT: ANIMATED Z SPORTS LOGO (OPPOSITE TO WORDING) */}
-          <div className="flex items-center justify-center lg:col-span-5">
+          {/* RIGHT: ANIMATED SPORTS HUB LOGO (OPPOSITE TO WORDING) */}
+          <Reveal variant="zoom" delay={150} className="flex items-center justify-center lg:col-span-5">
             <div className="relative flex items-center justify-center">
               {/* Pulsing Backglow Orb */}
               <div className="absolute h-80 w-80 rounded-full bg-orange-500/25 blur-[100px] pointer-events-none animate-pulse" />
@@ -604,10 +631,10 @@ function LandingPage() {
               {/* Glass Display Card Pedestal */}
               <div className="relative flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-8 shadow-2xl backdrop-blur-xl">
                 {/* SVG Animated Logo */}
-                <div className="relative h-64 w-64 sm:h-80 sm:w-80 transition duration-700 hover:scale-105">
+                <div className="relative flex h-44 w-72 items-center justify-center transition duration-700 hover:scale-105 sm:h-56 sm:w-96">
                   <img
-                    src="/z-sports-animated-logo.svg"
-                    alt="Z Sports Animated Logo"
+                    src="/sports-hub-logo.svg"
+                    alt="Sports Hub Animated Logo"
                     className="h-full w-full object-contain filter drop-shadow-[0_0_35px_rgba(249,115,22,0.4)]"
                   />
                 </div>
@@ -619,17 +646,17 @@ function LandingPage() {
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
                   </span>
                   <span className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-400">
-                    Official Z Sports Club Emblem
+                    Official Sports Hub Emblem
                   </span>
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </div>
 
         {/* HERO BOTTOM STATS RIBBON */}
 <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-zinc-800 bg-[#0c0c0f]/85 backdrop-blur-xl">
-  <div className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-4 sm:grid-cols-4 sm:gap-0 sm:px-0 sm:py-0">
+  <Reveal group className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-4 sm:grid-cols-4 sm:gap-0 sm:px-0 sm:py-0">
     {[
       {
         value: 35,
@@ -707,7 +734,7 @@ function LandingPage() {
         </div>
       );
     })}
-  </div>
+  </Reveal>
 </div>
       </section>
 
@@ -717,7 +744,7 @@ function LandingPage() {
       <section id="about" className="sports-section-bg sports-bg-about scroll-mt-20 py-24 sm:py-28">
         <div className="mx-auto grid max-w-7xl items-center gap-16 px-5 sm:px-6 lg:grid-cols-2 lg:px-8">
           {/* IMAGE */}
-          <div className="relative">
+          <Reveal variant="left" className="relative">
             <div className="overflow-hidden border border-zinc-800">
               <img
                 src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=2200&q=90"
@@ -726,19 +753,19 @@ function LandingPage() {
               />
             </div>
 
-            <div className="absolute bottom-0 left-0 bg-black p-6 border-t-2 border-r border-orange-500 text-white sm:px-9">
+            <div className="keep-dark absolute bottom-0 left-0 bg-black p-6 border-t-2 border-r border-orange-500 text-white sm:px-9">
               <div className="text-3xl font-black text-orange-500">1</div>
               <div className="mt-1 text-xs uppercase tracking-wider text-zinc-400">
                 Connected Club System
               </div>
             </div>
-          </div>
+          </Reveal>
 
           {/* CONTENT */}
-          <div>
+          <Reveal variant="right" delay={120}>
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
-              About Z Sports Club
+              About Sports Hub
             </div>
 
             <h2 className="mt-5 text-[38px] font-black leading-[1.08] tracking-tight text-white sm:text-[50px]">
@@ -749,7 +776,7 @@ function LandingPage() {
             </h2>
 
             <p className="mt-6 text-[15px] leading-8 text-zinc-300">
-              Z Sports Club combines world-class athletic facilities with modern digital membership and fee management. Instead of manual vouchers and untracked receipts, every application, payment, and voucher is stored with relational integrity in SQL Server.
+              Sports Hub combines world-class athletic facilities with modern digital membership and fee management. Instead of manual vouchers and untracked receipts, every application, payment, and voucher is stored with relational integrity in SQL Server.
             </p>
 
             <p className="mt-4 text-[15px] leading-8 text-zinc-400">
@@ -789,7 +816,7 @@ function LandingPage() {
                 <ArrowRight size={16} />
               </button>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -798,7 +825,7 @@ function LandingPage() {
       ========================================================= */}
       <section id="portals" className="sports-section-bg sports-bg-portals scroll-mt-20 py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
+          <Reveal className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
               Dedicated Workspaces
@@ -814,9 +841,9 @@ function LandingPage() {
             <p className="mt-5 max-w-xl text-[14px] leading-7 text-zinc-400">
               Every user receives an intuitive workspace equipped with the exact tools and records needed for seamless athletic and administrative operations.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-2">
+          <Reveal group className="mt-14 grid gap-6 md:grid-cols-2">
             {portals.map((portal) => {
               const Icon = portal.icon;
 
@@ -867,7 +894,7 @@ function LandingPage() {
                 </div>
               );
             })}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -876,7 +903,7 @@ function LandingPage() {
       ========================================================= */}
       <section id="plans" className="sports-section-bg sports-bg-plans scroll-mt-20 py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center">
+          <Reveal className="max-w-2xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
               Membership Plans
@@ -893,9 +920,9 @@ function LandingPage() {
             <p className="mt-4 text-[14px] leading-7 text-zinc-400">
               Select an official membership package. Non-members can sign up and enroll in seconds.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <Reveal group className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {plans.map((plan) => (
               <div
                 key={plan.PlanID}
@@ -951,7 +978,7 @@ function LandingPage() {
                 </button>
               </div>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -960,7 +987,7 @@ function LandingPage() {
       ========================================================= */}
       <section id="sports" className="sports-section-bg sports-bg-arenas scroll-mt-20 py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
                 <span className="h-px w-8 bg-orange-500" />
@@ -976,11 +1003,11 @@ function LandingPage() {
             </div>
 
             <p className="max-w-md text-[14px] leading-7 text-zinc-400">
-              Z Sports Club houses multi-sport complexes with international specifications, tournament illumination, climate control, and digital scoring.
+              Sports Hub houses multi-sport complexes with international specifications, tournament illumination, climate control, and digital scoring.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Reveal group className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {sports.map((sport, index) => (
               <div
                 key={sport.SportID}
@@ -1008,7 +1035,7 @@ function LandingPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1017,7 +1044,7 @@ function LandingPage() {
       ========================================================= */}
       <section className="sports-section-bg sports-bg-modules py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-end">
+          <Reveal className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-end">
             <div>
               <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
                 <span className="h-px w-8 bg-orange-500" />
@@ -1035,9 +1062,9 @@ function LandingPage() {
             <p className="text-[14px] leading-7 text-zinc-400">
               Manage complete club operations through connected modules built around everyday sports, administrative, and financial workflows.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid border-l border-t border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+          <Reveal group className="mt-14 grid border-l border-t border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
             {modules.map((module) => {
               const Icon = module.icon;
               return (
@@ -1059,7 +1086,7 @@ function LandingPage() {
                 </div>
               );
             })}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1068,7 +1095,7 @@ function LandingPage() {
       ========================================================= */}
       <section id="services" className="sports-section-bg sports-bg-services scroll-mt-20 py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center">
+          <Reveal className="max-w-2xl mx-auto text-center">
             <div className="flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
               Member Amenities
@@ -1081,9 +1108,9 @@ function LandingPage() {
                 Beyond traditional gyms.
               </span>
             </h2>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <Reveal group className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {services.map((svc) => (
               <div
                 key={svc.ServiceID}
@@ -1105,9 +1132,9 @@ function LandingPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </Reveal>
 
-          <div className="mt-12 text-center">
+          <Reveal variant="fade" className="mt-12 text-center">
             <Link
               to="/services"
               className="inline-flex items-center gap-3 rounded-none bg-orange-500 px-7 py-4 text-xs font-black uppercase tracking-wider text-black transition hover:bg-white hover:shadow-2xl"
@@ -1115,7 +1142,7 @@ function LandingPage() {
               Explore Full Detailed Services & Amenities
               <ArrowRight size={16} />
             </Link>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1124,7 +1151,7 @@ function LandingPage() {
       ========================================================= */}
       <section id="events" className="sports-section-bg sports-bg-events scroll-mt-20 py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
             <div>
               <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
                 <span className="h-px w-8 bg-orange-500" />
@@ -1146,9 +1173,9 @@ function LandingPage() {
               View Member Events Portal
               <ArrowRight size={14} />
             </Link>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
+          <Reveal group className="mt-14 grid gap-6 md:grid-cols-3">
             {events.map((ev) => (
               <div
                 key={ev.EventID}
@@ -1203,7 +1230,7 @@ function LandingPage() {
                 </div>
               </div>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1212,7 +1239,7 @@ function LandingPage() {
       ========================================================= */}
       <section className="sports-section-bg sports-bg-workflow py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
+          <Reveal className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
               Workflow
@@ -1224,9 +1251,9 @@ function LandingPage() {
                 Complete transparency.
               </span>
             </h2>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid border-l border-t border-zinc-800 md:grid-cols-2 lg:grid-cols-4">
+          <Reveal group className="mt-14 grid border-l border-t border-zinc-800 md:grid-cols-2 lg:grid-cols-4">
             {steps.map((step) => (
               <div
                 key={step.number}
@@ -1245,7 +1272,7 @@ function LandingPage() {
                 </p>
               </div>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1254,7 +1281,7 @@ function LandingPage() {
       ========================================================= */}
       <section id="faq" className="sports-section-bg sports-bg-faq scroll-mt-20 py-24 sm:py-28">
         <div className="mx-auto max-w-4xl px-5 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
+          <Reveal className="mx-auto max-w-2xl text-center">
             <div className="flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
               Frequently Asked Questions
@@ -1264,12 +1291,12 @@ function LandingPage() {
             <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
               Everything you need to
               <span className="block font-normal text-orange-500">
-                know about Z Sports Club.
+                know about Sports Hub.
               </span>
             </h2>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 space-y-3">
+          <Reveal group className="mt-14 space-y-3">
             {faqData.map((item, index) => {
               const isOpen = openFAQ === index;
 
@@ -1309,7 +1336,7 @@ function LandingPage() {
                 </div>
               );
             })}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1320,7 +1347,7 @@ function LandingPage() {
         <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-orange-500/10 blur-[130px]" />
 
         <div className="relative mx-auto flex max-w-7xl flex-col justify-between gap-10 px-5 sm:px-6 lg:flex-row lg:items-center lg:px-8">
-          <div className="max-w-2xl">
+          <Reveal variant="left" className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
               Elevate Your Fitness
@@ -1336,7 +1363,7 @@ function LandingPage() {
             <p className="mt-5 max-w-xl text-[14px] leading-7 text-zinc-400">
               Register an account today, select your tailored membership tier, and access world-class sports facilities, digital fee management, and tournaments.
             </p>
-          </div>
+          </Reveal>
 
           <Link
             to="/register"
@@ -1357,17 +1384,17 @@ function LandingPage() {
             {/* BRAND */}
             <div className="md:col-span-5">
               <button onClick={scrollToTop} className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-orange-500/40 bg-zinc-900 p-1">
+                <div className="flex h-12 w-[86px] items-center justify-center overflow-hidden rounded-lg border border-orange-500/40 bg-zinc-900 px-1.5">
                   <img
-                    src="/z-sports-animated-logo.svg"
-                    alt="Z Sports Logo"
-                    className="h-full w-full object-contain"
+                    src="/sports-hub-logo.svg"
+                    alt="Sports Hub Logo"
+                    className="h-7 w-auto object-contain"
                   />
                 </div>
 
                 <div className="text-left">
                   <div className="text-xl font-black text-white">
-                    Z <span className="text-orange-500">SPORTS</span>
+                    SPORTS <span className="text-orange-500">HUB</span>
                   </div>
                   <div className="mt-0.5 text-[8.5px] uppercase tracking-[0.22em] text-zinc-400">
                     Club Management System
@@ -1376,7 +1403,7 @@ function LandingPage() {
               </button>
 
               <p className="mt-5 max-w-md text-xs leading-6 text-zinc-400">
-                Z Sports Club is a premier sports and athletic institution providing Olympic swimming, cricket arenas, synthetic tennis courts, coaching academies, and relational fee management.
+                Sports Hub is a premier sports and athletic institution providing Olympic swimming, cricket arenas, synthetic tennis courts, coaching academies, and relational fee management.
               </p>
 
               <div className="mt-6 space-y-2.5 text-xs text-zinc-400">
@@ -1390,7 +1417,7 @@ function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2.5">
                   <span className="text-orange-500 font-bold">✉️</span>
-                  info@zsportsclub.com
+                  info@sportshub.com
                 </div>
               </div>
             </div>
@@ -1459,7 +1486,7 @@ function LandingPage() {
           {/* BOTTOM */}
           <div className="flex flex-col items-center justify-between gap-4 pt-7 text-[10px] sm:flex-row">
             <p className="text-zinc-500">
-              © {new Date().getFullYear()} Z Sports Club Management System. All rights reserved.
+              © {new Date().getFullYear()} Sports Hub Management System. All rights reserved.
             </p>
 
             <button

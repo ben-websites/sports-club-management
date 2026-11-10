@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import ThemeToggle from "../../components/common/ThemeToggle";
 import { Trophy, ArrowRight, Lock, Mail, User, Phone, AlertCircle, ArrowLeft } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -59,7 +60,7 @@ function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col justify-center py-12 px-5 sm:px-6 lg:px-8 relative overflow-hidden page-transition">
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col justify-center py-10 px-4 sm:px-6 sm:py-12 lg:px-8 relative overflow-hidden page-transition">
       {/* GLOW */}
       <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-orange-500/10 blur-[130px] pointer-events-none" />
 
@@ -74,18 +75,23 @@ function RegisterPage() {
         </Link>
       </div>
 
+      {/* THEME SWITCH */}
+      <div className="absolute top-8 right-8">
+        <ThemeToggle variant="panel" className="h-10 w-10" />
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-orange-500/40 bg-zinc-900 p-1">
+          <div className="flex h-12 w-[84px] items-center justify-center overflow-hidden rounded-lg border border-orange-500/40 bg-zinc-900 px-1.5">
             <img
-              src="/z-sports-animated-logo.svg"
-              alt="Z Sports Logo"
-              className="h-full w-full object-contain"
+              src="/sports-hub-logo.svg"
+              alt="Sports Hub Logo"
+              className="h-7 w-auto object-contain"
             />
           </div>
           <div className="text-left">
             <div className="text-xl font-black text-white leading-none">
-              Z <span className="text-orange-500">SPORTS</span>
+              SPORTS <span className="text-orange-500">HUB</span>
             </div>
             <div className="mt-1 text-[8.5px] font-bold uppercase tracking-[0.2em] text-zinc-400">
               Club Management System
@@ -97,12 +103,12 @@ function RegisterPage() {
           Create Member Account
         </h2>
         <p className="mt-1 text-xs text-zinc-400">
-          Join Z Sports Club to subscribe to memberships and access facilities.
+          Join Sports Hub to subscribe to memberships and access facilities.
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="border border-zinc-800 bg-[#121215] p-7 shadow-2xl">
+        <div className="border border-zinc-800 bg-[#121215] p-5 shadow-2xl sm:p-7">
           {error && (
             <div className="mb-5 flex items-center gap-2 border border-red-500/30 bg-red-500/10 p-3 text-xs font-semibold text-red-400">
               <AlertCircle size={16} className="shrink-0 text-red-400" />
@@ -119,6 +125,7 @@ function RegisterPage() {
                 <input
                   type="text"
                   required
+                  autoComplete="name"
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   placeholder="e.g. John Doe"
@@ -136,6 +143,8 @@ function RegisterPage() {
                 <input
                   type="email"
                   required
+                  autoComplete="email"
+                  inputMode="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="name@example.com"
@@ -152,6 +161,8 @@ function RegisterPage() {
               <div className="mt-1 relative">
                 <input
                   type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="0300-1234567"
@@ -161,7 +172,7 @@ function RegisterPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                   Password *
@@ -170,6 +181,7 @@ function RegisterPage() {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder="Min 8 chars"
@@ -187,6 +199,7 @@ function RegisterPage() {
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     placeholder="Re-type"
@@ -200,7 +213,7 @@ function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-none bg-orange-500 py-3 text-xs font-extrabold uppercase tracking-wider text-black transition-all hover:bg-white disabled:opacity-50"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-none bg-orange-500 py-3.5 text-xs font-extrabold uppercase tracking-wider text-black transition-all hover:bg-white disabled:opacity-50"
             >
               {loading ? "Creating Account..." : "Create Account"}
               <ArrowRight size={14} />

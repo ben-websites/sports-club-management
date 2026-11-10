@@ -244,7 +244,7 @@ function AdminFines() {
                         {v.Phone || "—"}
                       </td>
                       <td className="p-3.5 text-zinc-300">
-                        {v.VoucherType === "Advance" ? "Advance" : `${v.BillingMonth}/${v.BillingYear}`}
+                        {v.VoucherType === "Advance" ? "Advance" : v.VoucherType === "Admission" ? "Admission Fee" : `${v.BillingMonth}/${v.BillingYear}`}
                       </td>
                       <td className="p-3.5 text-zinc-400">
                         {new Date(v.DueDate).toLocaleDateString()}

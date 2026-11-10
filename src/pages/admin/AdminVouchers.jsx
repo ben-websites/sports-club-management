@@ -18,12 +18,21 @@ function AdminVouchers() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const currentDate = new Date();
+  const periodMonth = currentDate.getMonth() + 1;
+  const periodYear = currentDate.getFullYear();
+  const periodLabel = `${currentDate.toLocaleString("default", { month: "long" })} ${periodYear}`;
+
   const [genData, setGenData] = useState({
-    billingMonth: currentDate.getMonth() + 1,
-    billingYear: currentDate.getFullYear(),
+    billingMonth: periodMonth,
+    billingYear: periodYear,
     dueDay: 10,
   });
   const [generating, setGenerating] = useState(false);
+
+  // Billing is locked to the current month and can only be pitched once.
+  const isPeriodPublished = vouchers.some(
+    (v) => v.VoucherType === "Monthly" && v.BillingMonth === periodMonth && v.BillingYear === periodYear
+  );
 
   useEffect(() => {
     fetchVouchers(true);
@@ -54,8 +63,8 @@ function AdminVouchers() {
     e.preventDefault();
 
     const confirm = await Swal.fire({
-      title: "Generate Monthly Fee Vouchers?",
-      text: `Are you sure you want to run batch voucher generation for ${genData.billingMonth}/${genData.billingYear}?`,
+      title: "Publish Monthly Fee Vouchers?",
+      html: `<p class="text-sm">Publish the fee vouchers for <b>${periodLabel}</b>?</p><p class="text-xs mt-2 text-zinc-500">Only the current month can be pitched, and a month can only be published once.</p>`,
       icon: "question",
       showCancelButton: true,
       confirmButtonColor: "#f97316",
@@ -216,7 +225,11 @@ function AdminVouchers() {
                         </span>
                       </td>
                       <td className="p-3.5 text-zinc-300">
-                        {v.VoucherType === "Advance" ? "Advance" : `${v.BillingMonth}/${v.BillingYear}`}
+                        {v.VoucherType === "Advance"
+                          ? "Advance"
+                          : v.VoucherType === "Admission"
+                          ? "Admission Fee"
+                          : `${v.BillingMonth}/${v.BillingYear}`}
                       </td>
                       <td className="p-3.5 font-mono text-zinc-300">
                         Rs. {Number(v.BaseAmount).toLocaleString()}
@@ -296,36 +309,29 @@ function AdminVouchers() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-300">
-                      Billing Month (1 - 12) *
+                      Billing Period
                     </label>
-                    <select
-                      value={genData.billingMonth}
-                      onChange={(e) => setGenData({ ...genData, billingMonth: parseInt(e.target.value, 10) })}
-                      className="mt-1 w-full rounded-none border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-orange-500 focus:outline-none"
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
-                        <option key={m} value={m}>
-                          Month {m} ({new Date(2000, m - 1, 1).toLocaleString("default", { month: "long" })})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="mt-1 flex items-center justify-between border border-orange-500/40 bg-orange-500/10 px-3.5 py-2.5 text-xs font-bold text-orange-400">
+                      <span>{periodLabel}</span>
+                      <span className="text-[9px] uppercase tracking-wider text-orange-300/80">Current month</span>
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-300">
-                      Billing Year *
+                      Billing Year
                     </label>
-                    <input
-                      type="number"
-                      required
-                      min="2020"
-                      max="2035"
-                      value={genData.billingYear}
-                      onChange={(e) => setGenData({ ...genData, billingYear: parseInt(e.target.value, 10) })}
-                      className="mt-1 w-full rounded-none border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-orange-500 focus:outline-none"
-                    />
+                    <div className="mt-1 border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-xs font-bold text-zinc-400">
+                      {periodYear} (locked)
+                    </div>
                   </div>
                 </div>
+
+                {isPeriodPublished && (
+                  <div className="border border-emerald-500/40 bg-emerald-500/10 p-3 text-[11px] font-semibold text-emerald-300">
+                    {periodLabel} has already been published. Each month can only be pitched once, so this batch is closed.
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-300">
@@ -341,7 +347,7 @@ function AdminVouchers() {
                     className="mt-1 w-full rounded-none border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-orange-500 focus:outline-none"
                   />
                   <span className="text-[10px] text-zinc-400 mt-0.5 block">
-                    Vouchers will be due on day {genData.dueDay} of month {genData.billingMonth}.
+                    Vouchers will be due on day {genData.dueDay} of {periodLabel}.
                   </span>
                 </div>
 
@@ -352,7 +358,7 @@ function AdminVouchers() {
                     Advance Payment Skip Protocol
                   </div>
                   <p className="text-[11px] leading-relaxed">
-                    The system automatically consults the <span className="font-mono text-white">MemberPrepayments</span> ledger. Any member who has already paid for Month {genData.billingMonth}/{genData.billingYear} in advance will be <strong>strictly skipped</strong> and will not receive a duplicate voucher.
+                    The system automatically consults the <span className="font-mono text-white">MemberPrepayments</span> ledger. Any member who has already paid for {periodLabel} in advance will be <strong>strictly skipped</strong> and will not receive a duplicate voucher.
                   </p>
                 </div>
 
@@ -366,10 +372,10 @@ function AdminVouchers() {
                   </button>
                   <button
                     type="submit"
-                    disabled={generating}
-                    className="rounded-none bg-orange-500 px-6 py-2 text-xs font-bold uppercase text-black hover:bg-white disabled:opacity-50"
+                    disabled={generating || isPeriodPublished}
+                    className="rounded-none bg-orange-500 px-6 py-2 text-xs font-bold uppercase text-black hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {generating ? "Generating Batch..." : "Generate Vouchers"}
+                    {isPeriodPublished ? "Already Published" : generating ? "Publishing Batch..." : "Publish Vouchers"}
                   </button>
                 </div>
               </form>

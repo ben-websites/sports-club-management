@@ -174,6 +174,8 @@ function VouchersPage() {
                           <span>
                             {v.advanceMonths?.length || "Multiple"} Month(s) Advance
                           </span>
+                        ) : v.VoucherType === "Admission" ? (
+                          <span>One-time Admission Fee</span>
                         ) : (
                           <span>
                             {v.BillingMonth}/{v.BillingYear}

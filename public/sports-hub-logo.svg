@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 466 220" width="100%" height="100%" id="sports-hub-logo" role="img" aria-label="Sports Hub SH logo">
+    <defs>
+      <linearGradient id="sh-hFill" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#f9f6f2"/>
+        <stop offset="55%" stop-color="#f1ede7"/>
+        <stop offset="100%" stop-color="#e8e3dc"/>
+      </linearGradient>
+      <filter id="sh-Shadow" x="-20%" y="-20%" width="140%" height="150%">
+        <feDropShadow dx="0" dy="3.5" stdDeviation="4.5" flood-color="#241a10" flood-opacity="0.16"/>
+      </filter>
+    </defs>
+  <!-- outlined S -->
+  <path d="M89 17.1L111 17.5L127.6 19.3L143 22.8L159.6 29.8L168 35.5L177.6 46.9L182 57.5L183.8 71.1L182.9 71.9L123.7 71.9L122.4 71.1L120.2 62.3L114.9 56.6L106.6 53.1L99.6 51.8L86.8 51.8L74.1 54.8L71.1 56.6L68 60.5L68.4 67.1L71.1 69.7L79.8 73.2L132 83.3L154.8 90.4L166.2 96.1L175.4 103.5L181.1 111L184.2 120.2L183.8 139L180.7 147.4L175 157L167.1 164.9L160.1 169.7L147.8 175.9L132.9 180.3L108.8 183.8L81.1 183.8L58.8 181.1L43 177.6L32.9 173.7L21.5 167.5L12.3 159.2L5.3 148.7L2.2 140.8L0 128.5L0.4 122.8L62.7 122.8L64.5 131.6L71.1 140.4L77.2 143.4L86.8 145.6L100.4 145.6L108.3 144.3L116.2 141.2L121.1 136.4L121.9 129.4L120.6 126.8L115.8 123.2L109.2 120.6L57.5 112.3L29.4 104.8L14.5 96.5L6.6 87.3L3.5 79.4L2.6 64L4.8 55.7L11.8 43.4L20.2 35.5L30.7 28.9L48.2 22.4L65.8 18.9L89 17.5Z" fill="#f6f6f6" stroke="#bfbebd" stroke-width="2.3" stroke-linejoin="round" filter="url(#sh-Shadow)"/>
+  <!-- orange badge with white H -->
+  <g filter="url(#sh-Shadow)">
+    <path d="M235.1 0H406.6A39.9 39.9 0 0 1 446.5 39.9V160.1A39.9 39.9 0 0 1 406.6 200H235.1A39.9 39.9 0 0 1 195.2 160.1V39.9A39.9 39.9 0 0 1 235.1 0Z" fill="#fc9403"/>
+    <path d="M241.2 29.8L289 29.8L289.9 30.7L289.9 79.8L290.4 80.7L292.1 81.1L352.6 80.7L352.6 32L353.5 29.8L401.8 29.8L402.6 30.7L402.6 168.4L401.8 169.3L353.1 168.9L352.2 116.7L290.8 116.7L289.9 117.5L289.9 168.9L240.4 169.3L239.5 165.4L239.5 35.5L239.9 30.7L241.2 30.3Z" fill="url(#sh-hFill)"/>
+  </g>
+</svg>

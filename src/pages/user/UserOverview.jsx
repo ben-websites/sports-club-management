@@ -21,6 +21,9 @@ import {
   Trophy,
   CheckCircle2,
   FileText,
+  Dumbbell,
+  Calendar,
+  Activity,
 } from "lucide-react";
 
 function UserOverview() {
@@ -87,6 +90,24 @@ function UserOverview() {
 
   const quickActions = [
     {
+      title: "Sports & Courses",
+      icon: Dumbbell,
+      path: "/user/sports",
+      desc: "Enroll in sports per plan quota",
+    },
+    {
+      title: "Training Timetable",
+      icon: Calendar,
+      path: "/user/schedules",
+      desc: "Weekly drills & training timetable",
+    },
+    {
+      title: "Athletic Scorecard",
+      icon: Trophy,
+      path: "/user/performance",
+      desc: "Coach evaluations & attendance",
+    },
+    {
       title: "View Vouchers",
       icon: FileText,
       path: "/user/vouchers",
@@ -109,6 +130,12 @@ function UserOverview() {
       icon: Trophy,
       path: "/user/events",
       desc: "Register for upcoming club leagues",
+    },
+    {
+      title: "My Membership",
+      icon: ShieldCheck,
+      path: "/user/membership",
+      desc: "Package details & plan status",
     },
   ];
 
@@ -175,7 +202,7 @@ function UserOverview() {
                 No Active Membership Subscription
               </div>
               <p className="mt-1 text-xs text-zinc-300">
-                You have not yet enrolled in a Z Sports Club membership tier. Select a plan to access sports arenas and member privileges.
+                You have not yet enrolled in a Sports Hub membership tier. Select a plan to access sports arenas and member privileges.
               </p>
             </div>
             <Link
@@ -332,7 +359,11 @@ function UserOverview() {
                           </span>
                         </td>
                         <td className="p-3 text-zinc-300">
-                          {v.VoucherType === "Advance" ? "Advance" : `${v.BillingMonth}/${v.BillingYear}`}
+                          {v.VoucherType === "Advance"
+                            ? "Advance"
+                            : v.VoucherType === "Admission"
+                            ? "Admission Fee"
+                            : `${v.BillingMonth}/${v.BillingYear}`}
                         </td>
                         <td className="p-3 font-bold text-white">
                           Rs. {Number(v.totalPayable || v.BaseAmount).toLocaleString()}
@@ -373,20 +404,20 @@ function UserOverview() {
             </div>
 
             {/* CARD UI */}
-            <div className="my-4 rounded-none border border-orange-500/40 bg-gradient-to-br from-zinc-900 via-black to-[#1a1208] p-5 shadow-xl relative overflow-hidden">
+            <div className="keep-dark my-4 rounded-none border border-orange-500/40 bg-gradient-to-br from-zinc-900 via-black to-[#1a1208] p-5 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 h-32 w-32 bg-orange-500/10 rounded-full blur-2xl" />
 
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-2">
                   <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-orange-500/40 bg-zinc-900 p-0.5">
                     <img
-                      src="/z-sports-animated-logo.svg"
-                      alt="Z Sports"
+                      src="/sports-hub-mark.svg"
+                      alt="Sports Hub"
                       className="h-full w-full object-contain"
                     />
                   </div>
                   <span className="font-black text-xs uppercase tracking-tight text-white">
-                    Z Sports Club
+                    Sports Hub
                   </span>
                 </div>
                 <StatusBadge status={membership?.MembershipStatus || "Pending"} />

@@ -22,9 +22,45 @@ import {
   DollarSign,
   Trophy,
   Zap,
+  Award,
+  Shield,
+  ClipboardCheck,
+  Box,
+  BarChart3,
+  Dumbbell,
 } from "lucide-react";
 
 const quickActions = [
+  {
+    title: "Coaches Faculty",
+    icon: Award,
+    path: "/admin/coaches",
+  },
+  {
+    title: "Sports Teams",
+    icon: Shield,
+    path: "/admin/teams",
+  },
+  {
+    title: "Tournaments & Matches",
+    icon: Trophy,
+    path: "/admin/tournaments",
+  },
+  {
+    title: "Attendance Registry",
+    icon: ClipboardCheck,
+    path: "/admin/attendance",
+  },
+  {
+    title: "Equipment & Gear",
+    icon: Box,
+    path: "/admin/equipment",
+  },
+  {
+    title: "Reports & Analytics",
+    icon: BarChart3,
+    path: "/admin/reports",
+  },
   {
     title: "Generate Vouchers",
     icon: ReceiptText,
@@ -34,16 +70,6 @@ const quickActions = [
     title: "Review Applications",
     icon: UserCheck,
     path: "/admin/memberships",
-  },
-  {
-    title: "Verify Receipts",
-    icon: CreditCard,
-    path: "/admin/payments",
-  },
-  {
-    title: "Create Notice",
-    icon: Megaphone,
-    path: "/admin/announcements",
   },
 ];
 

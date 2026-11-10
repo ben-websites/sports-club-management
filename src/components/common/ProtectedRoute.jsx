@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import PageLoader from "../dashboard/PageLoader";
 
-export const ProtectedRoute = ({ adminOnly = false }) => {
+export const ProtectedRoute = ({ adminOnly = false, coachOnly = false }) => {
   const { isAuthenticated, role, loading } = useAuth();
 
   if (loading) {
@@ -18,7 +18,11 @@ export const ProtectedRoute = ({ adminOnly = false }) => {
   }
 
   if (adminOnly && role !== "admin") {
-    return <Navigate to="/user/dashboard" replace />;
+    return <Navigate to={role === "coach" ? "/coach/dashboard" : "/user/dashboard"} replace />;
+  }
+
+  if (coachOnly && role !== "coach") {
+    return <Navigate to={role === "admin" ? "/admin/dashboard" : "/user/dashboard"} replace />;
   }
 
   return <Outlet />;

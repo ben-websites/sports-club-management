@@ -15,6 +15,7 @@ function AdminPlans() {
   const [formData, setFormData] = useState({
     planName: "",
     monthlyFee: "",
+    admissionFee: "3000",
     durationMonths: "6",
     description: "",
     isActive: true,
@@ -43,6 +44,7 @@ function AdminPlans() {
     setFormData({
       planName: "",
       monthlyFee: "",
+      admissionFee: "3000",
       durationMonths: "6",
       description: "",
       isActive: true,
@@ -55,6 +57,7 @@ function AdminPlans() {
     setFormData({
       planName: p.PlanName,
       monthlyFee: p.MonthlyFee,
+      admissionFee: p.AdmissionFee ?? 3000,
       durationMonths: p.DurationMonths,
       description: p.Description || "",
       isActive: p.IsActive,
@@ -183,6 +186,11 @@ function AdminPlans() {
                   Duration: <span className="font-bold text-zinc-200">{p.DurationMonths} Months</span>
                 </div>
 
+                <div className="mt-1 text-xs text-zinc-400">
+                  Admission Fee:{" "}
+                  <span className="font-bold text-orange-400">Rs. {Number(p.AdmissionFee ?? 0).toLocaleString()}</span>
+                </div>
+
                 <p className="mt-3 text-xs leading-5 text-zinc-400 line-clamp-3">
                   {p.Description || "Standard club membership privileges."}
                 </p>
@@ -256,6 +264,21 @@ function AdminPlans() {
                       value={formData.monthlyFee}
                       onChange={(e) => setFormData({ ...formData, monthlyFee: e.target.value })}
                       placeholder="e.g. 3500"
+                      className="mt-1 w-full rounded-none border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-orange-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-300">
+                      Admission Fee (PKR) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={formData.admissionFee}
+                      onChange={(e) => setFormData({ ...formData, admissionFee: e.target.value })}
+                      placeholder="e.g. 5000"
                       className="mt-1 w-full rounded-none border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white focus:border-orange-500 focus:outline-none"
                     />
                   </div>

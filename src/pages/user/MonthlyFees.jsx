@@ -254,7 +254,11 @@ function MonthlyFees() {
                       <StatusBadge status={v.VoucherStatus} />
                     </div>
                     <div className="mt-1 text-xs text-zinc-300">
-                      {v.VoucherType === "Advance" ? "Advance Payment Voucher" : `Billing Period: ${v.BillingMonth}/${v.BillingYear}`}
+                      {v.VoucherType === "Advance"
+                        ? "Advance Payment Voucher"
+                        : v.VoucherType === "Admission"
+                        ? "One-time Admission Fee"
+                        : `Billing Period: ${v.BillingMonth}/${v.BillingYear}`}
                       {" · "}
                       Due Date:{" "}
                       <span className="font-semibold text-white">

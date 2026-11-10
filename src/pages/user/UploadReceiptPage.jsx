@@ -205,7 +205,11 @@ function UploadReceiptPage() {
                   >
                     {unpaidVouchers.map((v) => (
                       <option key={v.VoucherID} value={v.VoucherID}>
-                        #{v.VoucherNumber} ({v.VoucherType === "Advance" ? "Advance" : `${v.BillingMonth}/${v.BillingYear}`}) — Rs. {Number(v.totalPayable || v.BaseAmount).toLocaleString()}
+                        #{v.VoucherNumber} ({v.VoucherType === "Advance"
+                          ? "Advance"
+                          : v.VoucherType === "Admission"
+                          ? "Admission Fee"
+                          : `${v.BillingMonth}/${v.BillingYear}`}) — Rs. {Number(v.totalPayable || v.BaseAmount).toLocaleString()}
                       </option>
                     ))}
                   </select>
@@ -367,7 +371,7 @@ function UploadReceiptPage() {
                 <div>
                   <div className="text-[9px] uppercase text-zinc-400">Account Title</div>
                   <div className="font-semibold text-white">
-                    Z Sports Club Management
+                    Sports Hub Management
                   </div>
                 </div>
               </div>

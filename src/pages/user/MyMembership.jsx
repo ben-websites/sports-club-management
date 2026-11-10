@@ -393,22 +393,22 @@ function MyMembership() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(340px,1fr)]">
           {/* DIGITAL CARD (PRINTABLE) */}
           <div className="border border-zinc-800 bg-[#121215] p-6 flex flex-col justify-center items-center">
-            <div className="w-full max-w-sm rounded-none border-2 border-orange-500/60 bg-gradient-to-br from-black via-zinc-950 to-[#1e1307] p-6 shadow-2xl relative overflow-hidden text-white">
+            <div className="keep-dark w-full max-w-sm rounded-none border-2 border-orange-500/60 bg-gradient-to-br from-black via-zinc-950 to-[#1e1307] p-6 shadow-2xl relative overflow-hidden text-white">
               <div className="absolute top-0 right-0 h-40 w-40 bg-orange-500/15 rounded-full blur-3xl" />
 
               {/* CARD TOP */}
               <div className="flex items-start justify-between relative z-10">
                 <div className="flex items-center gap-2.5">
-                  <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-orange-500/40 bg-zinc-900 p-1">
+                  <div className="flex h-10 w-[74px] items-center justify-center overflow-hidden rounded-md border border-orange-500/40 bg-zinc-900 px-1">
                     <img
-                      src="/z-sports-animated-logo.svg"
-                      alt="Z Sports Logo"
-                      className="h-full w-full object-contain"
+                      src="/sports-hub-logo.svg"
+                      alt="Sports Hub Logo"
+                      className="h-6 w-auto object-contain"
                     />
                   </div>
                   <div>
                     <div className="text-xs font-black tracking-wider leading-none">
-                      Z SPORTS CLUB
+                      SPORTS HUB
                     </div>
                     <div className="text-[7.5px] uppercase tracking-[0.2em] text-zinc-400 mt-0.5">
                       Digital Pass

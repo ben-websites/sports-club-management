@@ -39,7 +39,7 @@ function EventDetailsModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* HERO IMAGE HEADER */}
-        <div className="relative h-56 w-full overflow-hidden bg-zinc-900">
+        <div className="keep-dark relative h-56 w-full overflow-hidden bg-zinc-900">
           <img
             src={
               event.EventImageURL ||
@@ -82,7 +82,7 @@ function EventDetailsModal({
           {/* EVENT TITLE ON HERO */}
           <div className="absolute bottom-4 left-6 right-6">
             <div className="text-[11px] font-bold uppercase tracking-wider text-orange-400">
-              Z Sports Championship Series
+              Sports Hub Championship Series
             </div>
             <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl leading-tight">
               {event.EventName}
@@ -195,7 +195,7 @@ function EventDetailsModal({
               <ul className="mt-2 space-y-1.5 text-[11px] text-zinc-400">
                 <li className="flex items-start gap-1.5">
                   <span className="text-orange-500 font-bold">•</span>
-                  <b>Winner:</b> Z Sports Championship Gold Trophy.
+                  <b>Winner:</b> Sports Hub Championship Gold Trophy.
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="text-orange-500 font-bold">•</span>
@@ -221,7 +221,7 @@ function EventDetailsModal({
                 <Phone size={12} className="text-orange-500" /> +92 300 1234567
               </span>
               <span className="flex items-center gap-1.5">
-                <Mail size={12} className="text-orange-500" /> events@zsportsclub.com
+                <Mail size={12} className="text-orange-500" /> events@sportshub.com
               </span>
             </div>
           </div>

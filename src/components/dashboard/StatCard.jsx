@@ -58,26 +58,26 @@ function StatCard({
   const current = styles[tone] || styles.orange;
 
   return (
-    <div className="relative overflow-hidden rounded-none border border-zinc-800 bg-[#121215] p-5 shadow-[0_5px_25px_rgba(0,0,0,0.4)] transition-all duration-200 hover:border-orange-500/50">
+    <div className="relative overflow-hidden rounded-none border border-zinc-800 bg-[#121215] p-4 shadow-[0_5px_25px_rgba(0,0,0,0.4)] transition-all duration-200 hover:border-orange-500/50 sm:p-5">
       <div
         className={`absolute -right-5 -top-5 h-20 w-20 rounded-none opacity-10 blur-xl ${current.glow}`}
       />
 
       <div
-        className={`mb-4 flex h-11 w-11 items-center justify-center rounded-none ${current.icon}`}
+        className={`mb-3 flex h-10 w-10 items-center justify-center rounded-none sm:mb-4 sm:h-11 sm:w-11 ${current.icon}`}
       >
-        <Icon size={20} />
+        <Icon size={18} />
       </div>
 
-      <div className="text-[28px] font-extrabold leading-none tracking-tight text-white">
+      <div className="text-[22px] font-extrabold leading-none tracking-tight text-white sm:text-[28px]">
         {value}
       </div>
 
-      <div className="mt-1 text-[12.5px] font-bold text-zinc-300">
+      <div className="mt-1 text-[11.5px] font-bold text-zinc-300 sm:text-[12.5px]">
         {title}
       </div>
 
-      <div className="mt-1 text-[10.5px] font-medium text-zinc-400">
+      <div className="mt-1 text-[10px] font-medium text-zinc-400 sm:text-[10.5px]">
         {label}
       </div>
 

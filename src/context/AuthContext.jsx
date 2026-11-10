@@ -128,6 +128,7 @@ export const AuthProvider = ({ children }) => {
 
   const role = user?.role || null;
   const isAuthenticated = !!token && !!user;
+  const isCoach = role === "coach";
   const hasMembership = !!user?.membership || !!user?.application;
   const isMemberActive = user?.membership?.status === "Active";
 
@@ -139,6 +140,7 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         isAuthenticated,
+        isCoach,
         hasMembership,
         isMemberActive,
         login,

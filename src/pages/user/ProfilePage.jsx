@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatusBadge from "../../components/dashboard/StatusBadge";
+import AvatarLightbox from "../../components/common/AvatarLightbox";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
-import { User, Mail, Phone, ShieldCheck, CheckCircle2, Lock, Camera, UploadCloud, Image as ImageIcon } from "lucide-react";
+import { User, Mail, Phone, ShieldCheck, CheckCircle2, Lock, Camera, UploadCloud, Image as ImageIcon, Maximize2 } from "lucide-react";
 
 function ProfilePage() {
   const { user, updateUserProfile, refreshUser } = useAuth();
@@ -17,8 +18,15 @@ function ProfilePage() {
   const [filePreview, setFilePreview] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [isPhotoOpen, setIsPhotoOpen] = useState(false);
 
   const fileInputRef = useRef(null);
+
+  // Keep the URL field in step with the picture actually stored on the account,
+  // so saving details later can never submit a stale (blank) avatar value.
+  useEffect(() => {
+    if (user?.avatarUrl) setAvatarUrlInput(user.avatarUrl);
+  }, [user?.avatarUrl]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -64,6 +72,7 @@ function ProfilePage() {
         toast.success(res.data.message || "Profile picture updated!");
         setSelectedFile(null);
         setFilePreview(null);
+        setIsPhotoOpen(false);
         await refreshUser();
       }
     } catch (err) {
@@ -160,17 +169,29 @@ function ProfilePage() {
           {/* USER CHIP WITH PROFILE PICTURE UPLOAD */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-6 pb-6 border-b border-zinc-800">
             <div className="relative group shrink-0">
-              {displayAvatar ? (
-                <img
-                  src={displayAvatar}
-                  alt={user?.fullName || "Profile"}
-                  className="h-20 w-20 rounded-none object-cover border-2 border-orange-500 shadow-lg"
-                />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-none bg-orange-500 text-black font-black text-3xl shadow-lg">
-                  {user?.fullName?.charAt(0) || "U"}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setIsPhotoOpen(true)}
+                title="Click to view and update your photo"
+                aria-label="Open profile picture"
+                className="group/pic relative block h-20 w-20 overflow-hidden border-2 border-orange-500 shadow-lg"
+              >
+                {displayAvatar ? (
+                  <img
+                    src={displayAvatar}
+                    alt={user?.fullName || "Profile"}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center bg-orange-500 text-3xl font-black text-black">
+                    {user?.fullName?.charAt(0) || "U"}
+                  </span>
+                )}
+
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/55 opacity-0 transition group-hover/pic:opacity-100 group-focus-visible/pic:opacity-100">
+                  <Maximize2 size={18} className="text-white" />
+                </span>
+              </button>
 
               <button
                 type="button"
@@ -193,6 +214,13 @@ function ProfilePage() {
             <div className="min-w-0 flex-1">
               <div className="text-lg font-black text-white truncate">{user?.fullName}</div>
               <div className="text-xs text-zinc-400 truncate">{user?.email}</div>
+              <button
+                type="button"
+                onClick={() => setIsPhotoOpen(true)}
+                className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-orange-400 transition hover:text-orange-300"
+              >
+                <Maximize2 size={11} /> View / change photo
+              </button>
               <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <span className="rounded-none bg-zinc-800 px-2 py-0.5 text-[9px] font-bold uppercase text-orange-400 border border-zinc-700">
                   Role: {user?.role}
@@ -332,6 +360,27 @@ function ProfilePage() {
           </div>
         </div>
       </div>
+
+      <AvatarLightbox
+        open={isPhotoOpen}
+        onClose={() => setIsPhotoOpen(false)}
+        src={displayAvatar}
+        name={user?.fullName}
+        subtitle={user?.email}
+        fallbackLetter={user?.fullName?.charAt(0) || "U"}
+        busy={uploadingAvatar}
+        pendingName={selectedFile?.name}
+        onFileSelected={handleFileChange}
+        onUpload={handleUploadAvatarFile}
+        onCancelPending={() => {
+          setSelectedFile(null);
+          setFilePreview(null);
+        }}
+        urlValue={avatarUrlInput}
+        onUrlChange={setAvatarUrlInput}
+        onApplyUrl={handleSaveAvatarUrl}
+        urlPlaceholder="https://example.com/my-photo.jpg"
+      />
     </DashboardLayout>
   );
 }

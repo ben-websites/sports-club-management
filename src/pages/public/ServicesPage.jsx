@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
+import Reveal from "../../components/common/Reveal";
+import ThemeToggle from "../../components/common/ThemeToggle";
 import {
   ShieldCheck,
   Trophy,
@@ -430,7 +432,7 @@ export default function ServicesPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#0c0c0e] font-sans text-zinc-100">
+    <div className="page-enter min-h-screen overflow-x-clip bg-[#0c0c0e] font-sans text-zinc-100">
       {/* =========================================================
           NAVBAR
       ========================================================= */}
@@ -441,19 +443,23 @@ export default function ServicesPage() {
             : "border-b border-zinc-800/80 bg-[#0c0c0e]/90 backdrop-blur-md"
         }`}
       >
-        <div className="mx-auto flex h-[82px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
+        <div
+          className={`mx-auto flex h-[82px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8 ${
+            isScrolled ? "" : "keep-dark"
+          }`}
+        >
           <Link to="/" className="group flex items-center gap-3">
             <div
-              className={`flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border transition-all duration-300 ${
+              className={`flex h-12 w-[92px] items-center justify-center overflow-hidden rounded-lg border transition-all duration-300 ${
                 isScrolled
-                  ? "border-[#e4dce5] bg-white shadow-sm"
-                  : "border-white/30 bg-white/10 backdrop-blur-md"
+                  ? "border-[#e4dce5] bg-[#0c0c0e] shadow-sm"
+                  : "border-white/20 bg-black/40 backdrop-blur-md"
               }`}
             >
               <img
-                src="/z-sports-animated-logo.svg"
-                alt="Z Sports Logo"
-                className="h-full w-full object-cover p-1"
+                src="/sports-hub-logo.svg"
+                alt="Sports Hub Logo"
+                className="h-8 w-auto object-contain"
               />
             </div>
 
@@ -463,13 +469,13 @@ export default function ServicesPage() {
                   isScrolled ? "text-[#18181b]" : "text-white"
                 }`}
               >
-                Z
+                SPORTS
                 <span
                   className={`font-light ml-1 ${
                     isScrolled ? "text-orange-500" : "text-orange-400"
                   }`}
                 >
-                  SPORTS
+                  HUB
                 </span>
               </div>
               <div
@@ -581,16 +587,72 @@ export default function ServicesPage() {
                 </Link>
               </div>
             )}
+
+            <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
           </div>
 
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`rounded-full p-2 lg:hidden transition ${
-              isScrolled ? "text-[#18181b]" : "text-white"
-            }`}
-          >
-            {isMobileMenuOpen ? <X size={25} /> : <Menu size={25} />}
-          </button>
+          <div className="flex items-center gap-1.5 lg:hidden">
+            <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className={`rounded-full p-2 transition ${
+                isScrolled ? "text-[#18181b]" : "text-white"
+              }`}
+            >
+              {isMobileMenuOpen ? <X size={25} /> : <Menu size={25} />}
+            </button>
+          </div>
+        </div>
+
+        {/* MOBILE AUTH BAR (always visible under the navbar) */}
+        <div
+          className={`flex items-center gap-2.5 border-t px-4 py-2.5 lg:hidden transition-colors duration-500 ${
+            isScrolled
+              ? "border-[#eee9ee] bg-white/95 backdrop-blur-xl"
+              : "keep-dark border-zinc-800/80 bg-[#0c0c0e]/95 backdrop-blur-md"
+          }`}
+        >
+          {isAuthenticated ? (
+            <>
+              <Link
+                to={role === "admin" ? "/admin/dashboard" : "/user/dashboard"}
+                className="flex flex-1 items-center justify-center gap-2 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
+              >
+                <Home size={14} />
+                {role === "admin" ? "Admin Panel" : "Members Dashboard"}
+              </Link>
+              <button
+                onClick={logout}
+                className={`border px-4 py-2.5 text-[12px] font-semibold transition ${
+                  isScrolled
+                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
+                    : "border-white/30 text-white hover:bg-white/10"
+                }`}
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className={`flex-1 border py-2.5 text-center text-[12px] font-semibold transition ${
+                  isScrolled
+                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
+                    : "border-white/30 text-white hover:bg-white/10"
+                }`}
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                className="flex flex-1 items-center justify-center gap-1.5 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
+              >
+                Join Club
+                <ArrowRight size={13} />
+              </Link>
+            </>
+          )}
         </div>
 
         {isMobileMenuOpen && (
@@ -622,21 +684,21 @@ export default function ServicesPage() {
       {/* =========================================================
           HERO BANNER
       ========================================================= */}
-      <section className="relative min-h-[520px] pt-36 pb-20 overflow-hidden bg-[#09090b] border-b border-zinc-800">
+      <section className="keep-dark relative min-h-[520px] pt-44 pb-20 lg:pt-36 overflow-hidden bg-[#09090b] border-b border-zinc-800">
         {/* HERO BACKGROUND IMAGE */}
         <img
           src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=2200&q=90"
-          alt="Z Sports Club Services & Performance"
+          alt="Sports Hub Services & Performance"
           className="absolute inset-0 h-full w-full object-cover opacity-60"
         />
 
         {/* OVERLAYS (Black & Orange transitions) */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/35" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-black/20 to-black/60" />
-        <div className="absolute top-1/4 right-10 h-96 w-96 rounded-full bg-orange-500/15 blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/4 right-10 h-96 w-96 rounded-full bg-orange-500/15 blur-[120px] pointer-events-none animate-heroGlow" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start gap-4">
+          <Reveal variant="left" className="flex flex-col items-start gap-4">
             <Link
               to="/"
               className="inline-flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-orange-500 transition"
@@ -655,12 +717,12 @@ export default function ServicesPage() {
             </h1>
 
             <p className="mt-4 text-base sm:text-lg text-zinc-300 leading-relaxed max-w-3xl">
-              At Z Sports Club, your membership unlocks institutional amenities engineered for athletic recovery, competitive technical coaching, and peak metabolic conditioning.
+              At Sports Hub, your membership unlocks institutional amenities engineered for athletic recovery, competitive technical coaching, and peak metabolic conditioning.
             </p>
-          </div>
+          </Reveal>
 
           {/* CATEGORY FILTER TABS */}
-          <div className="mt-12 flex flex-wrap gap-2 border-b border-zinc-800 pb-4">
+          <Reveal group className="mt-12 flex flex-wrap gap-2 border-b border-zinc-800 pb-4">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -674,7 +736,7 @@ export default function ServicesPage() {
                 {cat}
               </button>
             ))}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -683,102 +745,98 @@ export default function ServicesPage() {
       ========================================================= */}
       <section className="py-24 bg-[#09090b]">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="space-y-16">
-            {filteredServices.map((svc, index) => {
-              const isEven = index % 2 === 0;
-              return (
-                <div
-                  key={svc.ServiceID || svc.ServiceName}
-                  className="grid gap-10 lg:grid-cols-12 items-center border border-zinc-800 bg-[#121215] p-6 sm:p-10 transition duration-300 hover:border-orange-500/50"
-                >
-                  {/* IMAGE */}
-                  <div className={`lg:col-span-6 ${isEven ? "lg:order-1" : "lg:order-2"}`}>
-                    <div className="relative overflow-hidden border border-zinc-800">
-                      <img
-                        src={svc.ImageURL}
-                        alt={svc.ServiceName}
-                        className="h-80 sm:h-96 w-full object-cover transition duration-700 hover:scale-105"
-                      />
-                      <div className="absolute top-4 left-4 bg-orange-500 px-3 py-1 text-[10px] font-black uppercase text-black">
-                        {svc.category || "Club Service"}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* CONTENT */}
-                  <div className={`lg:col-span-6 ${isEven ? "lg:order-2" : "lg:order-1"}`}>
-                    <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-orange-400">
-                      <Clock size={14} className="text-orange-500" />
-                      {svc.hours || "Full Club Operating Hours"}
-                    </div>
-
-                    <h2 className="mt-2 text-2xl sm:text-3xl font-black text-white">
-                      {svc.ServiceName}
-                    </h2>
-
-                    <p className="mt-4 text-sm text-zinc-300 leading-relaxed">
-                      {svc.Description}
-                    </p>
-
-                    {svc.trainer && (
-                      <div className="mt-4 flex items-center gap-2 text-xs text-zinc-400">
-                        <span className="font-bold text-white">Lead Instructor:</span>
-                        <span className="text-orange-400 font-semibold">{svc.trainer}</span>
-                      </div>
-                    )}
-
-                    {/* FEATURES CHECKLIST */}
-                    {svc.features && svc.features.length > 0 && (
-                      <div className="mt-6 space-y-2 border-t border-zinc-800 pt-4">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                          Included Program Features
-                        </div>
-                        {svc.features.map((feat) => (
-                          <div key={feat} className="flex items-start gap-2.5 text-xs text-zinc-300">
-                            <Check size={14} className="text-orange-500 shrink-0 mt-0.5" />
-                            <span>{feat}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* TIER BADGES */}
-                    {svc.plansIncluded && (
-                      <div className="mt-6 flex flex-wrap items-center gap-2 pt-4 border-t border-zinc-800/80">
-                        <span className="text-[10px] uppercase font-bold text-zinc-500 mr-1">
-                          Included In:
-                        </span>
-                        {svc.plansIncluded.map((plan) => (
-                          <span
-                            key={plan}
-                            className="bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 text-[10px] font-bold"
-                          >
-                            {plan}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* ACTIONS */}
-                    <div className="mt-8 flex flex-wrap gap-3">
-                      <Link
-                        to="/#plans"
-                        className="inline-flex items-center gap-2 rounded-none bg-orange-500 px-6 py-3 text-xs font-black uppercase text-black hover:bg-white transition"
-                      >
-                        Enroll with Membership
-                        <ArrowRight size={14} />
-                      </Link>
-                      <Link
-                        to="/about"
-                        className="inline-flex items-center gap-2 rounded-none border border-zinc-700 bg-zinc-900 px-5 py-3 text-xs font-bold text-zinc-300 hover:text-white hover:border-zinc-500 transition"
-                      >
-                        Meet Coaches
-                      </Link>
-                    </div>
+          <div className="grid gap-8 md:grid-cols-2">
+            {filteredServices.map((svc) => (
+              <Reveal
+                key={svc.ServiceID || svc.ServiceName}
+                variant="up"
+                className="flex h-full flex-col border border-zinc-800 bg-[#121215] transition duration-300 hover:-translate-y-1 hover:border-orange-500/50 hover:shadow-[0_20px_50px_-26px_rgba(249,115,22,0.55)]"
+              >
+                {/* IMAGE */}
+                <div className="relative overflow-hidden border-b border-zinc-800">
+                  <img
+                    src={svc.ImageURL}
+                    alt={svc.ServiceName}
+                    className="h-52 w-full object-cover transition duration-700 hover:scale-105 sm:h-60"
+                  />
+                  <div className="absolute top-4 left-4 bg-orange-500 px-3 py-1 text-[10px] font-black uppercase text-black">
+                    {svc.category || "Club Service"}
                   </div>
                 </div>
-              );
-            })}
+
+                {/* CONTENT */}
+                <div className="flex flex-1 flex-col p-6 sm:p-7">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-orange-400">
+                    <Clock size={13} className="text-orange-500 shrink-0" />
+                    {svc.hours || "Full Club Operating Hours"}
+                  </div>
+
+                  <h2 className="mt-2 text-xl sm:text-2xl font-black text-white">
+                    {svc.ServiceName}
+                  </h2>
+
+                  <p className="mt-3 text-sm text-zinc-300 leading-relaxed">
+                    {svc.Description}
+                  </p>
+
+                  {svc.trainer && (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
+                      <span className="font-bold text-white">Lead Instructor:</span>
+                      <span className="text-orange-400 font-semibold">{svc.trainer}</span>
+                    </div>
+                  )}
+
+                  {/* FEATURES CHECKLIST */}
+                  {svc.features && svc.features.length > 0 && (
+                    <div className="mt-5 space-y-2 border-t border-zinc-800 pt-4">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                        Included Program Features
+                      </div>
+                      {svc.features.map((feat) => (
+                        <div key={feat} className="flex items-start gap-2.5 text-xs text-zinc-300">
+                          <Check size={14} className="text-orange-500 shrink-0 mt-0.5" />
+                          <span>{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* TIER BADGES */}
+                  {svc.plansIncluded && (
+                    <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-zinc-800/80 pt-4">
+                      <span className="text-[10px] uppercase font-bold text-zinc-500 mr-1">
+                        Included In:
+                      </span>
+                      {svc.plansIncluded.map((plan) => (
+                        <span
+                          key={plan}
+                          className="bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 text-[10px] font-bold"
+                        >
+                          {plan}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ACTIONS */}
+                  <div className="mt-auto flex flex-wrap gap-3 pt-6">
+                    <Link
+                      to="/#plans"
+                      className="inline-flex items-center gap-2 rounded-none bg-orange-500 px-5 py-2.5 text-[11px] font-black uppercase text-black hover:bg-white transition"
+                    >
+                      Enroll with Membership
+                      <ArrowRight size={13} />
+                    </Link>
+                    <Link
+                      to="/about"
+                      className="inline-flex items-center gap-2 rounded-none border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-[11px] font-bold text-zinc-300 hover:text-white hover:border-zinc-500 transition"
+                    >
+                      Meet Coaches
+                    </Link>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
@@ -788,7 +846,7 @@ export default function ServicesPage() {
       ========================================================= */}
       <section className="py-24 bg-[#121216] border-t border-zinc-800">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
+          <Reveal className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
               Specialist Infrastructure
@@ -799,11 +857,11 @@ export default function ServicesPage() {
             </h2>
 
             <p className="mt-3 text-sm text-zinc-400">
-              Every facility at Z Sports Club is maintained to international athletic specifications.
+              Every facility at Sports Hub is maintained to international athletic specifications.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <Reveal group className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {specializedAmenities.map((amenity) => {
               const Icon = amenity.icon;
               return (
@@ -819,7 +877,7 @@ export default function ServicesPage() {
                 </div>
               );
             })}
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -827,7 +885,7 @@ export default function ServicesPage() {
           CTA SECTION
       ========================================================= */}
       <section className="py-20 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-black">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-8">
+        <Reveal variant="fade" className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-8">
           <div>
             <div className="text-xs font-black uppercase tracking-widest text-black/80">
               Full Member Privileges
@@ -842,11 +900,11 @@ export default function ServicesPage() {
 
           <Link
             to="/#plans"
-            className="rounded-none bg-black px-8 py-4 text-xs font-black uppercase tracking-wider text-white transition hover:bg-white hover:text-black shadow-xl"
+            className="keep-dark rounded-none bg-black px-8 py-4 text-xs font-black uppercase tracking-wider text-white transition hover:bg-white hover:text-black shadow-xl"
           >
             Buy Membership Tier
           </Link>
-        </div>
+        </Reveal>
       </section>
 
       {/* =========================================================
@@ -857,16 +915,16 @@ export default function ServicesPage() {
           <div className="grid gap-12 border-b border-zinc-800 pb-14 md:grid-cols-12">
             <div className="md:col-span-5">
               <Link to="/" className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-orange-500/40 bg-zinc-900 p-1">
+                <div className="flex h-12 w-[86px] items-center justify-center overflow-hidden rounded-lg border border-orange-500/40 bg-zinc-900 px-1.5">
                   <img
-                    src="/z-sports-animated-logo.svg"
-                    alt="Z Sports Logo"
-                    className="h-full w-full object-contain"
+                    src="/sports-hub-logo.svg"
+                    alt="Sports Hub Logo"
+                    className="h-7 w-auto object-contain"
                   />
                 </div>
                 <div className="text-left">
                   <div className="text-xl font-black text-white">
-                    Z <span className="text-orange-500">SPORTS</span>
+                    SPORTS <span className="text-orange-500">HUB</span>
                   </div>
                   <div className="mt-0.5 text-[8.5px] uppercase tracking-[0.22em] text-zinc-400">
                     Club Management System
@@ -874,12 +932,12 @@ export default function ServicesPage() {
                 </div>
               </Link>
               <p className="mt-5 max-w-md text-xs leading-6 text-zinc-400">
-                Z Sports Club is an elite athletic institution offering Olympic swimming, cricket arenas, synthetic tennis courts, coaching academies, and relational fee management.
+                Sports Hub is an elite athletic institution offering Olympic swimming, cricket arenas, synthetic tennis courts, coaching academies, and relational fee management.
               </p>
               <div className="mt-6 space-y-2 text-xs text-zinc-400">
                 <div>📍 Main Club Boulevard, Sports Enclave</div>
                 <div>📞 +92 300 1234567</div>
-                <div>✉️ info@zsportsclub.com</div>
+                <div>✉️ info@sportshub.com</div>
               </div>
             </div>
 
@@ -927,7 +985,7 @@ export default function ServicesPage() {
 
           <div className="flex flex-col items-center justify-between gap-4 pt-7 text-[10px] sm:flex-row">
             <p className="text-zinc-500">
-              © {new Date().getFullYear()} Z Sports Club Management System. All rights reserved.
+              © {new Date().getFullYear()} Sports Hub Management System. All rights reserved.
             </p>
             <button
               onClick={scrollToTop}

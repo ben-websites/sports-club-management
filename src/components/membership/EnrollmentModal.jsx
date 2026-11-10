@@ -163,7 +163,7 @@ function EnrollmentModal({ plan, isOpen, onClose }) {
                 Membership Enrollment
               </h3>
               <p className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                Z Sports Club
+                Sports Hub
               </p>
             </div>
           </div>

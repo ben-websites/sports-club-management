@@ -97,6 +97,18 @@
   }
 }
 
+/* Opacity-only variant: a lingering transform on an ancestor turns it into the
+   containing block for position: fixed descendants, which breaks the sticky navbar. */
+@keyframes pageFade {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 @keyframes slideDown {
   0% {
     opacity: 0;
@@ -198,7 +210,7 @@
 ========================================================= */
 .page-transition,
 .page-enter {
-  animation: pageEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: pageFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fadeIn {
@@ -303,6 +315,412 @@ textarea:focus {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #f97316;
+}
+
+/* =========================================================
+   SCROLL REVEAL SYSTEM (FADE IN / FADE OUT / SLIDE / ZOOM)
+   Layered under Tailwind utilities so hover transforms still win.
+========================================================= */
+@layer components {
+
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, 34px, 0);
+    transition-property: opacity, transform, filter;
+    transition-duration: 900ms, 900ms, 900ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .reveal.reveal-fade {
+    transform: none;
+  }
+
+  .reveal.reveal-left {
+    transform: translate3d(-52px, 0, 0);
+  }
+
+  .reveal.reveal-right {
+    transform: translate3d(52px, 0, 0);
+  }
+
+  .reveal.reveal-zoom {
+    transform: scale(0.93);
+    filter: blur(6px);
+  }
+
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+
+  /* Staggered children groups (grids, card lists) */
+  .reveal-group>* {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+    transition-property: opacity, transform, border-color, background-color, box-shadow;
+    transition-duration: 800ms, 800ms, 300ms, 300ms, 300ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+
+  .reveal-group.is-visible>* {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .reveal-group.is-visible>*:nth-child(1) {
+    transition-delay: 50ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(2) {
+    transition-delay: 120ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(3) {
+    transition-delay: 190ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(4) {
+    transition-delay: 260ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(5) {
+    transition-delay: 330ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(6) {
+    transition-delay: 400ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(7) {
+    transition-delay: 470ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(8) {
+    transition-delay: 540ms;
+  }
+
+  .reveal-group.is-visible>*:nth-child(n + 9) {
+    transition-delay: 600ms;
+  }
+}
+
+/* Ambient animations used across the public site */
+@keyframes heroGlow {
+
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes logoFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes gradientPan {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes riseIn {
+  0% {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-heroGlow {
+  animation: heroGlow 8s ease-in-out infinite;
+}
+
+.animate-logoFloat {
+  animation: logoFloat 7s ease-in-out infinite;
+}
+
+.animate-riseIn {
+  animation: riseIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-gradientPan {
+  background-size: 200% 200%;
+  animation: gradientPan 6s linear infinite;
+}
+
+/* Respect users who prefer calmer interfaces */
+@media (prefers-reduced-motion: reduce) {
+
+  .reveal,
+  .reveal-group>* {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
+  .animate-heroGlow,
+  .animate-logoFloat,
+  .animate-gradientPan {
+    animation: none !important;
+  }
+}
+
+/* =========================================================
+   MOBILE EXPERIENCE (phones ≤ 767px)
+   ========================================================= */
+@media (max-width: 767px) {
+
+  /* Stop iOS/Android from re-scaling our type when the device rotates */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Native-feeling taps: no 300ms delay, no grey highlight rectangle */
+  a,
+  button,
+  [role="button"],
+  label,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* iOS zooms the page when a focused field is smaller than 16px */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Data tables keep their horizontal scroll inside the card wrapper */
+  main .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /* Tall dialogs turn into top-anchored, scrollable sheets */
+  .fixed.inset-0.z-50 {
+    align-items: flex-start !important;
+    overflow-y: auto;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+
+  .fixed.inset-0.z-50>div {
+    max-height: none;
+  }
+
+  /* Long unbroken values (emails, codes) never push the layout sideways */
+  main p,
+  main td,
+  main dd,
+  main h1,
+  main h2 {
+    overflow-wrap: break-word;
+  }
+}
+
+/* =========================================================
+   THEME: LIGHT ("white") — flips the dark zinc palette
+   Dark stays the default; `theme-light` on <html> activates this.
+   ========================================================= */
+html.theme-light {
+  color-scheme: light;
+
+  /* Inverted neutral ramp — every text/border/surface utility follows it */
+  --color-white: #18181b;
+  --color-zinc-50: #09090b;
+  --color-zinc-100: #18181b;
+  --color-zinc-200: #27272a;
+  --color-zinc-300: #3f3f46;
+  --color-zinc-400: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #8b8b93;
+  --color-zinc-700: #d4d4d8;
+  --color-zinc-800: #e4e4e7;
+  --color-zinc-900: #f4f4f5;
+  --color-zinc-950: #ffffff;
+
+  /* Accent shades darkened so they stay legible on white */
+  --color-orange-200: #c2410c;
+  --color-orange-300: #c2410c;
+  --color-orange-400: #ea580c;
+  --color-amber-200: #92400e;
+  --color-amber-300: #92400e;
+  --color-amber-400: #b45309;
+  --color-emerald-200: #047857;
+  --color-emerald-300: #047857;
+  --color-emerald-400: #059669;
+  --color-sky-200: #075985;
+  --color-sky-300: #075985;
+  --color-sky-400: #0369a1;
+  --color-rose-300: #be123c;
+  --color-rose-400: #e11d48;
+  --color-violet-300: #6d28d9;
+  --color-violet-400: #7c3aed;
+  --color-red-300: #b91c1c;
+  --color-red-400: #dc2626;
+  --color-teal-300: #0f766e;
+  --color-cyan-300: #0e7490;
+  --color-blue-300: #1d4ed8;
+  --color-indigo-300: #4338ca;
+  --color-purple-300: #7e22ce;
+  --color-pink-300: #be185d;
+  --color-green-300: #15803d;
+  --color-yellow-300: #a16207;
+  --color-lime-300: #4d7c0f;
+}
+
+html.theme-light body {
+  background-color: #f7f7f8;
+  color: #18181b;
+}
+
+/* Hard-coded dark surfaces (cards, bars, sheets) → white / near-white */
+html.theme-light [class*="bg-[#121215]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#0e0e11]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#121216]"]:not(.keep-dark):not(.keep-dark *) {
+  background-color: #ffffff;
+}
+
+html.theme-light [class*="bg-[#16161b]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#16161c]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#16161a]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#15151a]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#141418]"]:not(.keep-dark):not(.keep-dark *) {
+  background-color: #f4f4f5;
+}
+
+html.theme-light [class*="bg-[#0c0c0e]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#0c0c0f]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#0b0b0e]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#0f0f12]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#0f0f13]"]:not(.keep-dark):not(.keep-dark *) {
+  background-color: #ffffff;
+}
+
+html.theme-light [class*="bg-[#09090b]"]:not(.keep-dark):not(.keep-dark *),
+html.theme-light [class*="bg-[#08080a]"]:not(.keep-dark):not(.keep-dark *) {
+  background-color: #f7f7f8;
+}
+
+/* Translucent zinc overlays compile to literal alpha colours, so remap them too */
+html.theme-light [class*="bg-zinc-900/"]:not(.keep-dark):not(.keep-dark *) {
+  background-color: #f4f4f5;
+}
+
+html.theme-light [class*="bg-zinc-800/"]:not(.keep-dark):not(.keep-dark *) {
+  background-color: #ececee;
+}
+
+html.theme-light [class*="bg-zinc-950/"]:not(.keep-dark):not(.keep-dark *) {
+  background-color: #fafafa;
+}
+
+html.theme-light [class*="border-zinc-800/"]:not(.keep-dark):not(.keep-dark *) {
+  border-color: #e4e4e7;
+}
+
+html.theme-light [class*="divide-zinc-800"]:not(.keep-dark) > :not(:last-child) {
+  border-color: #e4e4e7;
+}
+
+/* White chips must stay white (only text-white flips through the palette) */
+html.theme-light [class~="bg-white"] {
+  background-color: #ffffff;
+}
+
+html.theme-light [class~="border-white"] {
+  border-color: #e4e4e7;
+}
+
+html.theme-light [class*="hover:bg-white"]:hover {
+  background-color: #f4f4f5;
+}
+
+/* Brand wordmark plates: the logo art is white, so its chip must stay dark */
+html.theme-light *:has(> img[src*="sports-hub-logo"]) {
+  background-color: #0c0c0e;
+  border-color: rgba(249, 115, 22, 0.45);
+}
+
+/* Photo bands on the marketing pages turn into clean light panels */
+html.theme-light .sports-section-bg {
+  background-image: linear-gradient(#ffffff, #f7f7f8);
+}
+
+/* Photo heroes, video bands and coloured CTA blocks keep the dark palette */
+html.theme-light .keep-dark {
+  color-scheme: dark;
+  --color-white: #ffffff;
+  --color-zinc-50: #fafafa;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #52525b;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-800: #27272a;
+  --color-zinc-900: #18181b;
+  --color-zinc-950: #09090b;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-sky-200: #bae6fd;
+  --color-sky-300: #7dd3fc;
+  --color-sky-400: #38bdf8;
+  --color-rose-300: #fda4af;
+  --color-rose-400: #fb7185;
+  --color-violet-300: #c4b5fd;
+  --color-violet-400: #a78bfa;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-teal-300: #5eead4;
+  --color-cyan-300: #67e8f9;
+  --color-blue-300: #93c5fd;
+  --color-indigo-300: #a5b4fc;
+  --color-purple-300: #d8b4fe;
+  --color-pink-300: #f9a8d4;
+  --color-green-300: #86efac;
+  --color-yellow-300: #fde047;
+  --color-lime-300: #bef264;
 }
 
 /* Print styling for vouchers and digital card */

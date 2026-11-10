@@ -13,7 +13,7 @@ function VoucherModal({ voucher, isOpen, onClose }) {
       onClick={onClose}
     >
       <div
-        className="modal-content w-full max-w-2xl rounded-none border border-zinc-700 bg-white text-zinc-900 shadow-2xl overflow-hidden my-6 cursor-default"
+        className="modal-content keep-dark w-full max-w-2xl rounded-none border border-zinc-700 bg-white text-zinc-900 shadow-2xl overflow-hidden my-6 cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* MODAL CONTROL HEADER (NO PRINT) */}
@@ -43,20 +43,20 @@ function VoucherModal({ voucher, isOpen, onClose }) {
         </div>
 
         {/* PRINTABLE VOUCHER CONTENT */}
-        <div className="p-8 font-sans bg-white text-zinc-900">
+        <div className="keep-dark p-8 font-sans bg-white text-zinc-900">
           {/* HEADER */}
           <div className="flex items-start justify-between border-b-2 border-black pb-5">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-orange-500/40 bg-zinc-900 p-1">
                 <img
-                  src="/z-sports-animated-logo.svg"
-                  alt="Z Sports Logo"
+                  src="/sports-hub-mark.svg"
+                  alt="Sports Hub Logo"
                   className="h-full w-full object-contain"
                 />
               </div>
               <div>
                 <h1 className="text-xl font-black uppercase tracking-tight text-black leading-none">
-                  Z Sports Club
+                  Sports Hub
                 </h1>
                 <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-600">
                   Official Membership Fee Deposit Slip
@@ -69,7 +69,11 @@ function VoucherModal({ voucher, isOpen, onClose }) {
 
             <div className="text-right">
               <div className="inline-block border border-black bg-zinc-100 px-3 py-1 text-xs font-black uppercase tracking-widest text-black">
-                {voucher.VoucherType === "Advance" ? "ADVANCE VOUCHER" : "MONTHLY VOUCHER"}
+                {voucher.VoucherType === "Advance"
+                  ? "ADVANCE VOUCHER"
+                  : voucher.VoucherType === "Admission"
+                  ? "ADMISSION VOUCHER"
+                  : "MONTHLY VOUCHER"}
               </div>
               <div className="mt-2 text-xs font-bold text-zinc-800">
                 #{voucher.VoucherNumber}
@@ -110,6 +114,8 @@ function VoucherModal({ voucher, isOpen, onClose }) {
                       : "Multiple Months"}
                     )
                   </span>
+                ) : voucher.VoucherType === "Admission" ? (
+                  <span>One-time Admission Fee</span>
                 ) : (
                   <span>
                     Month {voucher.BillingMonth} / {voucher.BillingYear}
@@ -143,11 +149,15 @@ function VoucherModal({ voucher, isOpen, onClose }) {
                 <td className="p-3 font-semibold text-zinc-800">
                   {voucher.VoucherType === "Advance"
                     ? `Prepaid Club Membership Fee (${voucher.advanceMonths?.length || 1} Months)`
+                    : voucher.VoucherType === "Admission"
+                    ? "One-time Membership Admission Fee"
                     : `Monthly Sports Club Membership Fee - ${voucher.PlanName}`}
                 </td>
                 <td className="p-3 text-center text-zinc-600">
                   {voucher.VoucherType === "Advance"
                     ? `${voucher.advanceMonths?.length || 1} Mos`
+                    : voucher.VoucherType === "Admission"
+                    ? "One-time"
                     : `${voucher.BillingMonth}/${voucher.BillingYear}`}
                 </td>
                 <td className="p-3 text-right font-mono font-bold text-black">
@@ -196,7 +206,7 @@ function VoucherModal({ voucher, isOpen, onClose }) {
               </div>
               <div>
                 <span className="text-zinc-500">Account Title:</span>{" "}
-                <span className="font-bold text-black">Z Sports Club Management</span>
+                <span className="font-bold text-black">Sports Hub Management</span>
               </div>
               <div>
                 <span className="text-zinc-500">Deposit Reference:</span>{" "}
