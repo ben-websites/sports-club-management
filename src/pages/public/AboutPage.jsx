@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import Reveal from "../../components/common/Reveal";
-import ThemeToggle from "../../components/common/ThemeToggle";
+import PublicNavbar from "../../components/public/PublicNavbar";
 import {
   ShieldCheck,
   Trophy,
@@ -21,9 +20,6 @@ import {
   MapPin,
   Phone,
   Mail,
-  Menu,
-  X,
-  Home,
   ArrowUp,
   Compass,
   Check,
@@ -31,18 +27,10 @@ import {
 } from "lucide-react";
 
 export default function AboutPage() {
-  const { user, isAuthenticated, role, logout } = useAuth();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [clubStats, setClubStats] = useState(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -157,258 +145,8 @@ export default function AboutPage() {
 
   return (
     <div className="page-enter min-h-screen overflow-x-clip bg-[#0c0c0e] font-sans text-zinc-100">
-      {/* =========================================================
-          NAVBAR
-      ========================================================= */}
-      <header
-        className={`fixed left-0 right-0 top-0 z-50 transition-all duration-500 ${
-          isScrolled
-            ? "border-b border-[#e8e1e8] bg-white/95 shadow-sm backdrop-blur-xl"
-            : "border-b border-zinc-800/80 bg-[#0c0c0e]/90 backdrop-blur-md"
-        }`}
-      >
-        <div
-          className={`mx-auto flex h-[82px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8 ${
-            isScrolled ? "" : "keep-dark"
-          }`}
-        >
-          {/* BRAND LOGO */}
-          <Link to="/" className="group flex items-center gap-3">
-            <div
-              className={`flex h-12 w-[92px] items-center justify-center overflow-hidden rounded-lg border transition-all duration-300 ${
-                isScrolled
-                  ? "border-[#e4dce5] bg-[#0c0c0e] shadow-sm"
-                  : "border-white/20 bg-black/40 backdrop-blur-md"
-              }`}
-            >
-              <img
-                src="/sports-hub-logo.svg"
-                alt="Sports Hub Logo"
-                className="h-8 w-auto object-contain"
-              />
-            </div>
-
-            <div className="text-left">
-              <div
-                className={`text-lg font-extrabold leading-none tracking-tight transition-colors ${
-                  isScrolled ? "text-[#18181b]" : "text-white"
-                }`}
-              >
-                SPORTS
-                <span
-                  className={`font-light ml-1 ${
-                    isScrolled ? "text-orange-500" : "text-orange-400"
-                  }`}
-                >
-                  HUB
-                </span>
-              </div>
-              <div
-                className={`mt-1 text-[8px] font-semibold uppercase tracking-[0.2em] transition-colors ${
-                  isScrolled ? "text-[#71717a]" : "text-white/65"
-                }`}
-              >
-                Sports Club Management
-              </div>
-            </div>
-          </Link>
-
-          {/* DESKTOP NAV LINKS */}
-          <nav className="hidden items-center gap-7 lg:flex">
-            <Link
-              to="/"
-              className={`text-[13px] font-semibold transition-colors ${
-                isScrolled ? "text-[#27272a] hover:text-orange-600" : "text-zinc-300 hover:text-orange-400"
-              }`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/about"
-              className="text-[13px] font-bold text-orange-500 border-b-2 border-orange-500 pb-0.5"
-            >
-              About Us
-            </Link>
-            <Link
-              to="/services"
-              className={`text-[13px] font-semibold transition-colors ${
-                isScrolled ? "text-[#27272a] hover:text-orange-600" : "text-zinc-300 hover:text-orange-400"
-              }`}
-            >
-              Services
-            </Link>
-            <Link
-              to="/#sports"
-              className={`text-[13px] font-semibold transition-colors ${
-                isScrolled ? "text-[#27272a] hover:text-orange-600" : "text-zinc-300 hover:text-orange-400"
-              }`}
-            >
-              Sports Arenas
-            </Link>
-            <Link
-              to="/#plans"
-              className={`text-[13px] font-semibold transition-colors ${
-                isScrolled ? "text-[#27272a] hover:text-orange-600" : "text-zinc-300 hover:text-orange-400"
-              }`}
-            >
-              Membership Plans
-            </Link>
-            <Link
-              to="/#events"
-              className={`text-[13px] font-semibold transition-colors ${
-                isScrolled ? "text-[#27272a] hover:text-orange-600" : "text-zinc-300 hover:text-orange-400"
-              }`}
-            >
-              Tournaments
-            </Link>
-            <Link
-              to="/#faq"
-              className={`text-[13px] font-semibold transition-colors ${
-                isScrolled ? "text-[#27272a] hover:text-orange-600" : "text-zinc-300 hover:text-orange-400"
-              }`}
-            >
-              FAQ
-            </Link>
-          </nav>
-
-          {/* DESKTOP CTA */}
-          <div className="hidden lg:flex items-center gap-3">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  to={role === "admin" ? "/admin/dashboard" : "/user/dashboard"}
-                  className="inline-flex items-center gap-2 bg-orange-500 px-6 py-3 text-[12px] font-bold text-black transition-all hover:bg-black hover:text-white"
-                >
-                  <Home size={15} />
-                  {role === "admin" ? "Admin Panel" : "Members Dashboard"}
-                </Link>
-                <button
-                  onClick={logout}
-                  className={`px-4 py-3 text-[12px] font-semibold transition ${
-                    isScrolled
-                      ? "border border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                      : "border border-white/30 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
-                  }`}
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/login"
-                  className={`border px-5 py-3 text-[12px] font-semibold transition ${
-                    isScrolled
-                      ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                      : "border border-white/30 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
-                  }`}
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="inline-flex items-center gap-2 bg-orange-500 px-6 py-3 text-[12px] font-bold text-black transition-all hover:bg-black hover:text-white"
-                >
-                  Join Club
-                  <ArrowRight size={15} />
-                </Link>
-              </div>
-            )}
-
-            <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
-          </div>
-
-          {/* MOBILE THEME SWITCH + MENU */}
-          <div className="flex items-center gap-1.5 lg:hidden">
-            <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`rounded-full p-2 transition ${
-                isScrolled ? "text-[#18181b]" : "text-white"
-              }`}
-            >
-              {isMobileMenuOpen ? <X size={25} /> : <Menu size={25} />}
-            </button>
-          </div>
-        </div>
-
-        {/* MOBILE AUTH BAR (always visible under the navbar) */}
-        <div
-          className={`flex items-center gap-2.5 border-t px-4 py-2.5 lg:hidden transition-colors duration-500 ${
-            isScrolled
-              ? "border-[#eee9ee] bg-white/95 backdrop-blur-xl"
-              : "keep-dark border-zinc-800/80 bg-[#0c0c0e]/95 backdrop-blur-md"
-          }`}
-        >
-          {isAuthenticated ? (
-            <>
-              <Link
-                to={role === "admin" ? "/admin/dashboard" : "/user/dashboard"}
-                className="flex flex-1 items-center justify-center gap-2 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
-              >
-                <Home size={14} />
-                {role === "admin" ? "Admin Panel" : "Members Dashboard"}
-              </Link>
-              <button
-                onClick={logout}
-                className={`border px-4 py-2.5 text-[12px] font-semibold transition ${
-                  isScrolled
-                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                    : "border-white/30 text-white hover:bg-white/10"
-                }`}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className={`flex-1 border py-2.5 text-center text-[12px] font-semibold transition ${
-                  isScrolled
-                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                    : "border-white/30 text-white hover:bg-white/10"
-                }`}
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="flex flex-1 items-center justify-center gap-1.5 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
-              >
-                Join Club
-                <ArrowRight size={13} />
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* MOBILE MENU */}
-        {isMobileMenuOpen && (
-          <div className="border-t border-zinc-800 bg-[#121216] px-6 py-5 lg:hidden">
-            <div className="space-y-3">
-              <Link to="/" className="block py-2 text-sm font-semibold text-zinc-300">
-                Home
-              </Link>
-              <Link to="/about" className="block py-2 text-sm font-bold text-orange-500">
-                About Us
-              </Link>
-              <Link to="/services" className="block py-2 text-sm font-semibold text-zinc-300">
-                Services
-              </Link>
-              <Link to="/#sports" className="block py-2 text-sm font-semibold text-zinc-300">
-                Sports Arenas
-              </Link>
-              <Link to="/#plans" className="block py-2 text-sm font-semibold text-zinc-300">
-                Membership Plans
-              </Link>
-              <Link to="/#events" className="block py-2 text-sm font-semibold text-zinc-300">
-                Tournaments
-              </Link>
-            </div>
-          </div>
-        )}
-      </header>
+      {/* SHARED PUBLIC NAVBAR (identical on landing / about / services) */}
+      <PublicNavbar />
 
       {/* =========================================================
           HERO BANNER

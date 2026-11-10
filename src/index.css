@@ -668,8 +668,9 @@ html.theme-light [class*="hover:bg-white"]:hover {
   background-color: #f4f4f5;
 }
 
-/* Brand wordmark plates: the logo art is white, so its chip must stay dark */
-html.theme-light *:has(> img[src*="sports-hub-logo"]) {
+/* Brand wordmark plates: the logo art is white, so its chip must stay dark.
+   Areas that are already pinned dark (the public navbar) keep their own look. */
+html.theme-light *:has(> img[src*="sports-hub-logo"]):not(.keep-dark):not(.keep-dark *) {
   background-color: #0c0c0e;
   border-color: rgba(249, 115, 22, 0.45);
 }
