@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import PageLoader from "../../components/dashboard/PageLoader";
 import StatCard from "../../components/dashboard/StatCard";
@@ -83,12 +84,8 @@ function AdminDashboard() {
   useEffect(() => {
     fetchDashboard(true);
 
-    // Live auto-refresh every 5 seconds
-    const interval = setInterval(() => {
-      fetchDashboard(false);
-    }, 5000);
-
-    return () => clearInterval(interval);
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => fetchDashboard(false));
   }, []);
 
   const fetchDashboard = async (isInitial = false) => {

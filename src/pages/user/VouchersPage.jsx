@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatusBadge from "../../components/dashboard/StatusBadge";
@@ -22,12 +23,8 @@ function VouchersPage() {
   useEffect(() => {
     fetchVouchers(true);
 
-    // Live auto-refresh every 5 seconds
-    const interval = setInterval(() => {
-      fetchVouchers(false);
-    }, 5000);
-
-    return () => clearInterval(interval);
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => fetchVouchers(false));
   }, []);
 
   const fetchVouchers = async (isInitial = false) => {

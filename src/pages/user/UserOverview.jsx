@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatCard from "../../components/dashboard/StatCard";
 import SummaryBox from "../../components/dashboard/SummaryBox";
@@ -39,13 +40,11 @@ function UserOverview() {
   useEffect(() => {
     fetchUserData(true);
 
-    // Live auto-refresh every 5 seconds
-    const interval = setInterval(() => {
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => {
       fetchUserData(false);
       refreshUser();
-    }, 5000);
-
-    return () => clearInterval(interval);
+    });
   }, []);
 
   const fetchUserData = async (isInitial = false) => {

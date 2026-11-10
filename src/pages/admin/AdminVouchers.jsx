@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatusBadge from "../../components/dashboard/StatusBadge";
 import PageLoader from "../../components/dashboard/PageLoader";
@@ -37,12 +38,8 @@ function AdminVouchers() {
   useEffect(() => {
     fetchVouchers(true);
 
-    // Live auto-refresh every 5 seconds
-    const interval = setInterval(() => {
-      fetchVouchers(false);
-    }, 5000);
-
-    return () => clearInterval(interval);
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => fetchVouchers(false));
   }, []);
 
   const fetchVouchers = async (isInitial = false) => {

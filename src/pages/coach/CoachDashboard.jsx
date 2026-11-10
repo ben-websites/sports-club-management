@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import PageLoader from "../../components/dashboard/PageLoader";
 import {
@@ -62,8 +63,8 @@ function CoachDashboard() {
       }
     };
     load(true);
-    const timer = setInterval(() => load(false), 15000);
-    return () => clearInterval(timer);
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => load(false), 15000);
   }, []);
 
   if (loading) {

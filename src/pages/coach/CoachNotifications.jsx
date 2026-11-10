@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import PageLoader from "../../components/dashboard/PageLoader";
 import { Bell, CheckCheck } from "lucide-react";
@@ -28,8 +29,8 @@ function CoachNotifications() {
 
   useEffect(() => {
     fetchAll(true);
-    const timer = setInterval(() => fetchAll(false), 15000);
-    return () => clearInterval(timer);
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => fetchAll(false), 15000);
   }, []);
 
   const openNotification = async (n) => {

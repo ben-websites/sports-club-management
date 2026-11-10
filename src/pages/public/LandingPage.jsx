@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import EnrollmentModal from "../../components/membership/EnrollmentModal";
 import EventDetailsModal from "../../components/events/EventDetailsModal";
 import Reveal from "../../components/common/Reveal";
@@ -110,12 +111,8 @@ function LandingPage() {
 
     fetchClubData();
 
-    // 5-second live auto-refresh for public content
-    const interval = setInterval(() => {
-      fetchClubData();
-    }, 5000);
-
-    return () => clearInterval(interval);
+    // Live auto-refresh for public content (skipped while the tab is hidden)
+    return startPolling(() => fetchClubData(), 30000);
   }, []);
 
   const portals = [

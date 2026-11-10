@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatusBadge from "../../components/dashboard/StatusBadge";
@@ -21,12 +22,8 @@ function EventsPage() {
   useEffect(() => {
     fetchEventsData(true);
 
-    // Live screen auto-refresh every 5 seconds
-    const interval = setInterval(() => {
-      fetchEventsData(false);
-    }, 5000);
-
-    return () => clearInterval(interval);
+    // Live screen auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => fetchEventsData(false));
   }, []);
 
   const fetchEventsData = async (isInitial = false) => {

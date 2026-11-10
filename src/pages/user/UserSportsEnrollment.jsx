@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import PageLoader from "../../components/dashboard/PageLoader";
 import Swal from "sweetalert2";
@@ -49,12 +50,11 @@ function UserSportsEnrollment() {
   useEffect(() => {
     fetchData(true);
 
-    const interval = setInterval(() => {
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => {
       fetchData(false);
       refreshUser?.();
-    }, 4000);
-
-    return () => clearInterval(interval);
+    });
   }, []);
 
   const fetchData = async (isInitial = false) => {

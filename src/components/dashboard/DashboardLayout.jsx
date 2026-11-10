@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import Avatar from "../common/Avatar";
 import ThemeToggle from "../common/ThemeToggle";
 import {
@@ -354,10 +355,10 @@ function DashboardLayout({ children, role: requiredRole = "user" }) {
     };
 
     checkLiveActivity();
-    const interval = setInterval(checkLiveActivity, 5000);
+    const stopLiveActivityPolling = startPolling(checkLiveActivity, 15000);
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      stopLiveActivityPolling();
     };
   }, [isAdmin, isCoach]);
 
@@ -381,11 +382,11 @@ function DashboardLayout({ children, role: requiredRole = "user" }) {
     window.addEventListener("scms-activity-event", handleUpdate);
     window.addEventListener("scms-notification-updated", handleUpdate);
 
-    const intv = setInterval(fetchDbNotifications, 5000);
+    const stopNotificationPolling = startPolling(fetchDbNotifications, 15000);
     return () => {
       window.removeEventListener("scms-activity-event", handleUpdate);
       window.removeEventListener("scms-notification-updated", handleUpdate);
-      clearInterval(intv);
+      stopNotificationPolling();
     };
   }, []);
 

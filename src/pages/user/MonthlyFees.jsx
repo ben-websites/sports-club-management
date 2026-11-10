@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatusBadge from "../../components/dashboard/StatusBadge";
@@ -18,12 +19,8 @@ function MonthlyFees() {
   useEffect(() => {
     fetchFeeData(true);
 
-    // Live auto-refresh every 5 seconds
-    const interval = setInterval(() => {
-      fetchFeeData(false);
-    }, 5000);
-
-    return () => clearInterval(interval);
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => fetchFeeData(false));
   }, []);
 
   const fetchFeeData = async (isInitial = false) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import api from "../../services/api";
+import startPolling from "../../services/polling";
 import { useAuth } from "../../context/AuthContext";
 import DashboardLayout from "../../components/dashboard/DashboardLayout";
 import StatusBadge from "../../components/dashboard/StatusBadge";
@@ -42,13 +43,11 @@ function MyMembership() {
   useEffect(() => {
     fetchMembership(true);
 
-    // Live auto-refresh every 5 seconds
-    const interval = setInterval(() => {
+    // Live auto-refresh (skipped while the tab is hidden)
+    return startPolling(() => {
       fetchMembership(false);
       refreshUser();
-    }, 5000);
-
-    return () => clearInterval(interval);
+    });
   }, []);
 
   const fetchMembership = async (isInitial = false) => {
