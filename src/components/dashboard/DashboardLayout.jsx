@@ -7,6 +7,7 @@ import api from "../../services/api";
 import startPolling from "../../services/polling";
 import Avatar from "../common/Avatar";
 import ThemeToggle from "../common/ThemeToggle";
+import ClubSwitcher from "../club/ClubSwitcher";
 import {
   LayoutDashboard,
   Users,
@@ -40,10 +41,11 @@ import {
   Wallet,
   UserCog,
   BadgeCheck,
+  Building2,
 } from "lucide-react";
 
 function DashboardLayout({ children, role: requiredRole = "user" }) {
-  const { user, role, logout, isMemberActive } = useAuth();
+  const { user, role, logout, isMemberActive, activeClub, clubs } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -90,6 +92,7 @@ function DashboardLayout({ children, role: requiredRole = "user" }) {
 
   const adminNavItems = [
     { name: "Dashboard", path: "/admin/dashboard", icon: LayoutDashboard },
+    { name: "Club Profile", path: "/admin/club-profile", icon: Building2 },
     { name: "Notifications", path: "/admin/notifications", icon: Bell, isNotificationItem: true },
     { name: "Users", path: "/admin/users", icon: Users },
     { name: "Memberships", path: "/admin/memberships", icon: ShieldCheck },
@@ -127,7 +130,7 @@ function DashboardLayout({ children, role: requiredRole = "user" }) {
 
   const navItems = isAdmin ? adminNavItems : isCoach ? coachNavItems : userNavItems;
   const homePath = isAdmin ? "/admin/dashboard" : isCoach ? "/coach/dashboard" : "/user/dashboard";
-  const profilePath = isAdmin ? "/admin/dashboard" : isCoach ? "/coach/profile" : "/user/profile";
+  const profilePath = isAdmin ? "/admin/club-profile" : isCoach ? "/coach/profile" : "/user/profile";
 
   // Four primary destinations reachable with a thumb + a "More" sheet.
   const mobileTabs = isAdmin
@@ -438,24 +441,37 @@ function DashboardLayout({ children, role: requiredRole = "user" }) {
       <aside className="hidden md:flex w-64 flex-col border-r border-zinc-800 bg-[#0c0c0f] shrink-0 sticky top-0 h-screen overflow-y-auto">
         {/* LOGO (Links strictly to Portal Home, NEVER public website) */}
         <div className="flex h-20 items-center justify-between border-b border-zinc-800 px-6">
-          <Link to={homePath} className="flex items-center gap-3 group">
-            <div className="flex h-11 w-[80px] items-center justify-center overflow-hidden rounded-lg border border-orange-500/40 bg-zinc-900 px-1.5 transition duration-300 group-hover:border-orange-400">
-              <img
-                src="/sports-hub-logo.svg"
-                alt="Sports Hub Logo"
-                className="h-6 w-auto object-contain"
-              />
-            </div>
-            <div>
-              <div className="text-base font-extrabold tracking-tight text-white leading-none">
-                SPORTS <span className="text-orange-500">HUB</span>
-              </div>
-              <div className="mt-1 text-[8.5px] font-bold uppercase tracking-[0.2em] text-zinc-400">
+          <Link to={homePath} className="group flex min-w-0 items-center gap-3">
+            {activeClub?.logoUrl ? (
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden border border-orange-500/40 bg-zinc-900 transition group-hover:border-orange-400">
+                <img
+                  src={activeClub.logoUrl}
+                  alt={activeClub.name || "Club logo"}
+                  className="h-8 w-8 object-contain"
+                />
+              </span>
+            ) : (
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center border border-orange-500/40 bg-zinc-900 text-[13px] font-black text-orange-500 transition group-hover:border-orange-400">
+                {(activeClub?.name || "SH").slice(0, 2).toUpperCase()}
+              </span>
+            )}
+            <span className="min-w-0">
+              <span className="block truncate text-[15px] font-extrabold leading-none tracking-tight text-white">
+                {activeClub?.name || "Sports Hub"}
+              </span>
+              <span className="mt-1 block text-[8.5px] font-bold uppercase tracking-[0.2em] text-zinc-400">
                 {isAdmin ? "Admin Portal" : isCoach ? "Coach Portal" : "Member Portal"}
-              </div>
-            </div>
+              </span>
+            </span>
           </Link>
         </div>
+
+        {/* WHICH CLUB THIS SESSION WORKS IN */}
+        {clubs.length > 0 && (
+          <div className="border-b border-zinc-800/60 px-5 py-3">
+            <ClubSwitcher />
+          </div>
+        )}
 
         {/* USER PROFILE INFO CARD WITH AVATAR */}
         <div className="px-5 py-4 border-b border-zinc-800/60 bg-zinc-900/40">
@@ -583,15 +599,21 @@ function DashboardLayout({ children, role: requiredRole = "user" }) {
           </button>
 
           <Link to={homePath} className="flex min-w-0 items-center gap-2">
-            <span className="flex h-9 w-[60px] shrink-0 items-center justify-center overflow-hidden rounded-md border border-transparent px-1">
-              <img
-                src="/sports-hub-logo.svg"
-                alt="Sports Hub Logo"
-                className="h-6 w-auto object-contain"
-              />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden border border-orange-500/40 bg-zinc-900">
+              {activeClub?.logoUrl ? (
+                <img
+                  src={activeClub.logoUrl}
+                  alt={activeClub.name || "Club logo"}
+                  className="h-7 w-7 object-contain"
+                />
+              ) : (
+                <span className="text-[10px] font-black text-orange-500">
+                  {(activeClub?.name || "SH").slice(0, 2).toUpperCase()}
+                </span>
+              )}
             </span>
             <span className="min-w-0 truncate text-[12.5px] font-extrabold tracking-tight text-white">
-              SPORTS <span className="text-orange-500">HUB</span>
+              {activeClub?.name || "Sports Hub"}
             </span>
             <span className="hidden min-[380px]:inline-block shrink-0 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-orange-400">
               {isAdmin ? "Admin" : isCoach ? "Coach" : "Member"}

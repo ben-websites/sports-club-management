@@ -1,175 +1,179 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { AlertCircle, ArrowRight, ArrowUpRight, Building2, Lock, Mail } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import ThemeToggle from "../../components/common/ThemeToggle";
-import { Trophy, ArrowRight, Lock, Mail, AlertCircle, ArrowLeft } from "lucide-react";
+import AuthShell from "../../components/common/AuthShell";
 
+const homeFor = (role) =>
+  role === "admin" ? "/admin/dashboard" : role === "coach" ? "/coach/dashboard" : "/user/dashboard";
+
+/**
+ * Member / staff sign-in.
+ *
+ * This is the plain email + password door into a club workspace. Club owners
+ * who bought the software use /owner/login instead - the two are
+ * deliberately separate entry points.
+ */
 function LoginPage() {
-  const { login } = useAuth();
+  const { login, selectClub } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [params] = useSearchParams();
 
   const [formData, setFormData] = useState({
-    email: "",
+    email: params.get("email") || "",
     password: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState("");
+
+  // Where to go back to after a successful sign-in (set by the guard).
+  const from = location.state?.from || null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setErrorCode("");
     setLoading(true);
 
     const result = await login(formData.email, formData.password);
     setLoading(false);
 
-    if (result.success) {
-      // Admins land in the admin portal, coaches in the coach panel, members on the site.
-      if (result.user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (result.user.role === "coach") {
-        navigate("/coach/dashboard");
-      } else {
-        navigate("/dashboard");
-      }
-    } else {
-      setError(result.message);
+    if (!result.success) {
+      setError(result.message || "Sign-in failed.");
+      setErrorCode(result.code || "");
+      return;
     }
+
+    // A `?club=slug` link (the enrolment CTA on a club's public page) wins over
+    // the generic destination, so the person lands where they were headed.
+    const wanted = params.get("club");
+    const next = params.get("next");
+
+    if (wanted) {
+      const chosen = await selectClub(wanted);
+      if (chosen.success) {
+        navigate(next || homeFor(chosen.club?.role), { replace: true });
+        return;
+      }
+    }
+
+    if (result.requiresClubSelection) {
+      navigate("/select-club", { replace: true });
+      return;
+    }
+
+    navigate(next || from || homeFor(result.user?.role), { replace: true });
   };
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-100 flex flex-col justify-center py-10 px-4 sm:px-6 sm:py-12 lg:px-8 relative overflow-hidden page-transition">
-      {/* GLOW OVERLAY */}
-      <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-orange-500/10 blur-[130px] pointer-events-none" />
+    <AuthShell
+      eyebrow="Member sign-in"
+      title="Sign in to your club"
+      subtitle="Your account works with every club you have joined. Fees, vouchers, schedules and events stay inside that club."
+      footer={
+        <>
+          New here?{" "}
+          <Link to="/register" className="font-bold text-orange-500 transition hover:text-white">
+            Create an account
+          </Link>
+          <span className="mx-2 text-zinc-700">·</span>
+          <Link to="/clubs" className="font-bold text-zinc-400 transition hover:text-white">
+            Browse clubs
+          </Link>
+        </>
+      }
+    >
+      {params.get("registered") === "1" && !error && (
+        <div className="mb-5 border border-emerald-500/30 bg-emerald-500/10 p-3 text-[11.5px] leading-6 text-emerald-300">
+          Account created. Sign in below, then pick a club to join from the directory.
+        </div>
+      )}
 
-      {/* TOP HOME LINK */}
-      <div className="absolute top-8 left-8">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-orange-500 transition"
-        >
-          <ArrowLeft size={14} />
-          Back to Website
-        </Link>
-      </div>
-
-      {/* THEME SWITCH */}
-      <div className="absolute top-8 right-8">
-        <ThemeToggle variant="panel" className="h-10 w-10" />
-      </div>
-
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-flex items-center gap-3">
-          <div className="flex h-12 w-[84px] items-center justify-center overflow-hidden rounded-lg border border-orange-500/40 bg-zinc-900 px-1.5">
-            <img
-              src="/sports-hub-logo.svg"
-              alt="Sports Hub Logo"
-              className="h-7 w-auto object-contain"
-            />
+      {error && (
+        <div className="mb-5 border border-red-500/30 bg-red-500/10 p-3 text-xs font-semibold text-red-400">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={16} className="shrink-0 text-red-400" />
+            <span>{error}</span>
           </div>
-          <div className="text-left">
-            <div className="text-xl font-black text-white leading-none">
-              SPORTS <span className="text-orange-500">HUB</span>
-            </div>
-            <div className="mt-1 text-[8.5px] font-bold uppercase tracking-[0.2em] text-zinc-400">
-              Club Management System
-            </div>
-          </div>
-        </Link>
-
-        <h2 className="mt-6 text-2xl font-black tracking-tight text-white">
-          Sign In to Your Account
-        </h2>
-        <p className="mt-1 text-xs text-zinc-400">
-          Access your member dashboard, fee vouchers, and club facilities.
-        </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="border border-zinc-800 bg-[#121215] p-5 shadow-2xl sm:p-7">
-          {error && (
-            <div className="mb-5 flex items-center gap-2 border border-red-500/30 bg-red-500/10 p-3 text-xs font-semibold text-red-400">
-              <AlertCircle size={16} className="shrink-0 text-red-400" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                Email Address
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  inputMode="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="name@example.com"
-                  className="w-full rounded-none border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none"
-                />
-                <Mail size={15} className="absolute right-3.5 top-3 text-zinc-500" />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                  Password
-                </label>
-              </div>
-              <div className="mt-1 relative">
-                <input
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full rounded-none border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none"
-                />
-                <Lock size={15} className="absolute right-3.5 top-3 text-zinc-500" />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-none bg-orange-500 py-3.5 text-xs font-extrabold uppercase tracking-wider text-black transition-all hover:bg-white disabled:opacity-50"
-            >
-              {loading ? "Authenticating..." : "Sign In"}
-              <ArrowRight size={14} />
-            </button>
-          </form>
-
-          {/* DEMO CREDENTIALS HELPER */}
-          <div className="mt-6 border-t border-zinc-800 pt-4 text-xs text-zinc-400 space-y-1 bg-zinc-900/40 p-3">
-            <div className="font-bold text-zinc-300 text-[10px] uppercase tracking-wider">
-              Existing Accounts:
-            </div>
-            <div>
-              <span className="text-orange-400 font-bold">Admin:</span> admin123@gmail.com / Admin@123
-            </div>
-            <div>
-              <span className="text-zinc-400 font-bold">User:</span> student@test.com / Student@123
-            </div>
-          </div>
-
-          <div className="mt-6 border-t border-zinc-800 pt-4 text-center text-xs text-zinc-400">
-            Don't have an account yet?{" "}
+          {errorCode === "PLATFORM_OWNER" && (
             <Link
-              to="/register"
-              className="font-bold text-orange-500 hover:text-white transition"
+              to="/platform/login"
+              className="mt-2 inline-flex items-center gap-1 font-bold text-orange-400 transition hover:text-white"
             >
-              Sign up here
+              Open the owner console <ArrowRight size={13} />
             </Link>
+          )}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Email address
+          </label>
+          <div className="relative mt-1">
+            <input
+              type="email"
+              required
+              autoComplete="email"
+              inputMode="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="name@example.com"
+              className="w-full border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none"
+            />
+            <Mail size={15} className="absolute right-3.5 top-3 text-zinc-500" />
           </div>
         </div>
+
+        <div>
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+            Password
+          </label>
+          <div className="relative mt-1">
+            <input
+              type="password"
+              required
+              autoComplete="current-password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder="••••••••"
+              className="w-full border border-zinc-700 bg-zinc-900 px-3.5 py-2.5 text-xs text-white placeholder-zinc-500 focus:border-orange-500 focus:outline-none"
+            />
+            <Lock size={15} className="absolute right-3.5 top-3 text-zinc-500" />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-6 flex w-full items-center justify-center gap-2 bg-orange-500 py-3.5 text-xs font-extrabold uppercase tracking-wider text-black transition-all hover:bg-white disabled:opacity-50"
+        >
+          {loading ? "Signing in..." : "Sign in"}
+          <ArrowRight size={14} />
+        </button>
+      </form>
+
+      <div className="mt-6 border-t border-zinc-800 pt-4">
+        <Link
+          to="/owner/login"
+          className="flex items-center justify-between gap-3 border border-zinc-800 bg-zinc-900/40 px-3.5 py-3 text-left transition hover:border-orange-500/60"
+        >
+          <span className="flex items-center gap-2.5">
+            <Building2 size={14} className="text-orange-500" />
+            <span>
+              <span className="block text-[11.5px] font-bold text-white">Club owner?</span>
+              <span className="block text-[10.5px] text-zinc-500">
+                Sign in to manage your club
+              </span>
+            </span>
+          </span>
+          <ArrowUpRight size={14} className="shrink-0 text-zinc-600" />
+        </Link>
       </div>
-    </div>
+    </AuthShell>
   );
 }
 

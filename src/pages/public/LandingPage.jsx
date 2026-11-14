@@ -1,41 +1,44 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import api from "../../services/api";
-import startPolling from "../../services/polling";
-import EnrollmentModal from "../../components/membership/EnrollmentModal";
-import EventDetailsModal from "../../components/events/EventDetailsModal";
-import Reveal from "../../components/common/Reveal";
-import PublicNavbar from "../../components/public/PublicNavbar";
-
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowRight,
-  ArrowUp,
-  ShieldCheck,
-  Users,
-  Home,
-  ReceiptText,
+  ArrowUpRight,
+  BadgeCheck,
+  Building2,
   CalendarDays,
-  Bell,
   CheckCircle2,
-  Sparkles,
   ChevronDown,
   ChevronUp,
-  HelpCircle,
-  Clock,
-  Zap,
-  Gem,
-  Trophy,
-  Dumbbell,
-  Target,
+  ClipboardCheck,
+  Coins,
   CreditCard,
-  UserCheck,
-  Compass,
-  AlertCircle,
-  Info,
+  Dumbbell,
+  Lock,
+  MapPin,
+  Receipt,
+  ShieldCheck,
+  Sparkles,
+  Trophy,
+  Users,
+  Wallet,
 } from "lucide-react";
+import api from "../../services/api";
+import startPolling from "../../services/polling";
+import Reveal from "../../components/common/Reveal";
 
-function CountUp({ value, suffix = "", duration = 1800 }) {
+/**
+ * The platform's front page.
+ *
+ * Everything shown here comes from the database: the counters read
+ * /public/stats, the club cards read /public/clubs, and the plans/prices are
+ * whatever each club has published. Nothing on this page is a hard-coded
+ * single-club claim any more - the old "35+ arenas / 275 members" copy belonged
+ * to the one-club version of the product.
+ */
+const money = (value) =>
+  value === null || value === undefined ? "-" : `PKR ${Number(value).toLocaleString("en-PK")}`;
+
+function CountUp({ value, suffix = "", duration = 1600 }) {
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -44,10 +47,7 @@ function CountUp({ value, suffix = "", duration = 1800 }) {
 
     const animate = (currentTime) => {
       const progress = Math.min((currentTime - startTime) / duration, 1);
-
-      // Smooth ease-out counting animation
       const easedProgress = 1 - Math.pow(1 - progress, 4);
-
       setCount(Math.floor(easedProgress * value));
 
       if (progress < 1) {
@@ -59,7 +59,6 @@ function CountUp({ value, suffix = "", duration = 1800 }) {
 
     setCount(0);
     animationFrame = requestAnimationFrame(animate);
-
     return () => cancelAnimationFrame(animationFrame);
   }, [value, duration]);
 
@@ -71,348 +70,271 @@ function CountUp({ value, suffix = "", duration = 1800 }) {
   );
 }
 
-function LandingPage() {
-  const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+const MEMBER_STEPS = [
+  {
+    number: "01",
+    title: "Create one free account",
+    body: "One login for the whole platform. It is not tied to a single club, so you can join one, or several.",
+  },
+  {
+    number: "02",
+    title: "Open a club's page",
+    body: "Browse the directory and read a club's facilities, coaches, upcoming events and membership plans.",
+  },
+  {
+    number: "03",
+    title: "Apply for a plan",
+    body: "Pick the plan you want and send the application. The club's admin reviews every request before it starts.",
+  },
+  {
+    number: "04",
+    title: "Pay and get your card",
+    body: "A monthly voucher appears in your dashboard. Pay it, upload the receipt, and your digital card stays active.",
+  },
+];
 
+const MODULES = [
+  {
+    icon: BadgeCheck,
+    title: "Memberships & plans",
+    body: "Each club publishes its own tiers, admission fees and monthly rates. Applications, approvals, renewals and suspensions are all in one place.",
+  },
+  {
+    icon: Receipt,
+    title: "Monthly vouchers",
+    body: "Fee vouchers are generated per member with a serial number, due date and deposit details - no paper slips at the front desk.",
+  },
+  {
+    icon: Coins,
+    title: "Late fines & dues",
+    body: "Overdue vouchers collect a per-day fine automatically, so the amount owed is always current and never argued about.",
+  },
+  {
+    icon: CreditCard,
+    title: "Receipt verification",
+    body: "Members upload a photo of the bank slip. Admins approve or reject it, and the voucher flips to paid with an audit trail.",
+  },
+  {
+    icon: Wallet,
+    title: "Advance payments",
+    body: "Pay several months up front. The system records the prepaid months and skips those months when generating vouchers.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Attendance & payroll",
+    body: "Mark member and staff attendance, track coach sessions, and run a salary register from the same records.",
+  },
+  {
+    icon: Trophy,
+    title: "Teams & tournaments",
+    body: "Teams, fixtures, tournaments and equipment issue - with member registration and live participant counts.",
+  },
+  {
+    icon: CalendarDays,
+    title: "Events & notices",
+    body: "Publish events and announcements to the right audience, and notify members the moment something changes.",
+  },
+];
+
+const FAQ = [
+  {
+    question: "How do I join a club?",
+    answer:
+      "Create a free account, open the club's page from the directory, choose a membership plan and submit the application. The club's admin reviews it, and once approved a monthly fee voucher appears in your dashboard. You pay it and upload the receipt - your digital membership card stays active from there on.",
+  },
+  {
+    question: "Can one account belong to more than one club?",
+    answer:
+      "Yes. Your login is a platform account, and each club you join keeps its own membership, vouchers and history under that account. Switching between clubs takes one click from the dashboard - and what happens in one club never affects your standing in another.",
+  },
+  {
+    question: "Are membership fees the same at every club?",
+    answer:
+      "No. Every club sets its own plans, monthly fees, admission charges and due dates. The plan cards you see are the ones that club publishes right now, priced in PKR.",
+  },
+  {
+    question: "How do I pay my monthly fee?",
+    answer:
+      "Your dashboard shows the current voucher with its due date. Pay by bank transfer or the payment method the club lists, then upload a photo of the slip. The club's admin verifies it and the voucher is marked paid - you keep the full payment history either way.",
+  },
+  {
+    question: "Can another club see my details?",
+    answer:
+      "No. Each club works inside its own private workspace, and the database separates clubs at the row level. A club's admin only ever sees the members who hold a membership with that club - never the account list of the platform.",
+  },
+  {
+    question: "I run a club - how do I get it onto Sports Hub?",
+    answer:
+      "Send a subscription request from the For Clubs page: company details, expected member volume and a payment receipt for the plan you picked. The platform owner reviews it, sets up your own admin login and your club's public page goes live on the directory.",
+  },
+];
+
+function LandingPage() {
+  const [stats, setStats] = useState(null);
+  const [clubs, setClubs] = useState([]);
   const [openFAQ, setOpenFAQ] = useState(0);
 
-  // Database driven state
-  const [plans, setPlans] = useState([]);
-  const [sports, setSports] = useState([]);
-  const [services, setServices] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [clubStats, setClubStats] = useState(null);
-  const [selectedPlanForModal, setSelectedPlanForModal] = useState(null);
-  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
-  const [selectedEventForDetails, setSelectedEventForDetails] = useState(null);
-
-  // Fetch real database content
   useEffect(() => {
-    const fetchClubData = async () => {
+    let alive = true;
+
+    const load = async () => {
       try {
-        const [plansRes, sportsRes, servicesRes, eventsRes, statsRes] = await Promise.all([
-          api.get("/public/plans"),
-          api.get("/public/sports"),
-          api.get("/public/services"),
-          api.get("/public/events"),
-          api.get("/public/club-info"),
+        const [statsRes, clubsRes] = await Promise.all([
+          api.get("/public/stats"),
+          api.get("/public/clubs"),
         ]);
 
-        if (plansRes.data.success) setPlans(plansRes.data.data);
-        if (sportsRes.data.success) setSports(sportsRes.data.data);
-        if (servicesRes.data.success) setServices(servicesRes.data.data);
-        if (eventsRes.data.success) setEvents(eventsRes.data.data);
-        if (statsRes.data.success) setClubStats(statsRes.data);
+        if (!alive) return;
+        if (statsRes.data.success) setStats(statsRes.data.stats || {});
+        if (clubsRes.data.success) setClubs(clubsRes.data.data || []);
       } catch (error) {
-        console.error("Error loading public club data:", error);
+        console.error("Could not load the platform overview:", error.message);
       }
     };
 
-    fetchClubData();
+    load();
+    const stop = startPolling(load, 60000);
 
-    // Live auto-refresh for public content (skipped while the tab is hidden)
-    return startPolling(() => fetchClubData(), 30000);
+    return () => {
+      alive = false;
+      if (typeof stop === "function") stop();
+    };
   }, []);
 
-  const portals = [
-    {
-      icon: ShieldCheck,
-      title: "Club Administration",
-      subtitle: "Complete Management Control",
-      description:
-        "Manage member approvals, generate monthly vouchers, calculate late fine penalties, review payment receipts and oversee sports facilities.",
-      features: [
-        "Member enrollment approval & rejection",
-        "Monthly fee voucher generation",
-        "Payment receipt verification & Cloudinary proof",
-        "Late fine & advance payment management",
-      ],
-      image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=2000&q=85",
-    },
-    {
-      icon: Home,
-      title: "Member Portal",
-      subtitle: "Everything in One Place",
-      description:
-        "Members can manage their digital club card, view monthly fee vouchers, upload external payment receipts, track prepayments and join tournaments.",
-      features: [
-        "Digital membership card with ID",
-        "Monthly & advance fee voucher tracking",
-        "Receipt slip upload & approval status",
-        "Tournament registrations & announcements",
-      ],
-      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      icon: Zap,
-      title: "Advance Fee System",
-      subtitle: "Hassle-Free Prepayments",
-      description:
-        "Choose to pay 1 to 12 months in advance. The system automatically calculates dues, creates advance vouchers, and skips future monthly billing.",
-      features: [
-        "Custom advance months selection",
-        "Zero duplicate monthly vouchers generated",
-        "Instant prepaid ledger update on approval",
-        "Late penalty protection",
-      ],
-      image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80",
-    },
-    {
-      icon: Trophy,
-      title: "Tournaments & Leagues",
-      subtitle: "Competitive Sports Platform",
-      description:
-        "Track club tournaments, seasonal leagues, bracket schedules, and 1-click event registration for active club members.",
-      features: [
-        "Cricket leagues & Tennis opens",
-        "Olympic swimming championships",
-        "Real-time participant counts",
-        "Medals & prize records",
-      ],
-      image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80",
-    },
+  const counters = [
+    { value: stats?.TotalClubs || 0, label: "Clubs on the platform", icon: Building2 },
+    { value: stats?.SportCount || 0, label: "Sports offered", icon: Dumbbell },
+    { value: stats?.MemberCount || 0, label: "Active memberships", icon: Users },
+    { value: stats?.UpcomingEvents || 0, label: "Upcoming events", icon: Trophy },
   ];
 
-  const modules = [
-    {
-      icon: Users,
-      title: "Member Accounts",
-      description: "Role-based user management with distinct permissions for members and club administrators.",
-    },
-    {
-      icon: Gem,
-      title: "Tiered Packages",
-      description: "Custom membership plans with duration, monthly fee schedules, and facility privileges.",
-    },
-    {
-      icon: ReceiptText,
-      title: "Monthly Vouchers",
-      description: "Automated generation of fee vouchers with unique serial numbers, barcodes and deposit details.",
-    },
-    {
-      icon: AlertCircle,
-      title: "Dynamic Late Fines",
-      description: "Configurable due dates and automated per-day overdue penalties applied to unpaid slips.",
-    },
-    {
-      icon: CreditCard,
-      title: "Receipt Verification",
-      description: "Secure Cloudinary receipt image upload and admin verification workflow.",
-    },
-    {
-      icon: Zap,
-      title: "Prepayment Ledger",
-      description: "Advance payment module preventing future monthly voucher generation for prepaid months.",
-    },
-    {
-      icon: Bell,
-      title: "Club Notices",
-      description: "Broadcast urgent administrative notices and membership updates directly to member dashboards.",
-    },
-    {
-      icon: Trophy,
-      title: "Sports Competitions",
-      description: "Create and organize athletic events with registration caps, dates, and venues.",
-    },
-  ];
-
-  const steps = [
-    {
-      number: "01",
-      title: "Create Account",
-      description: "Sign up as a user and explore all sports arenas, fitness services, and club membership plans.",
-    },
-    {
-      number: "02",
-      title: "Select Membership",
-      description: "Choose your preferred tier (Bronze, Silver, Gold, Platinum) and submit your enrollment details.",
-    },
-    {
-      number: "03",
-      title: "Pay & Upload Slip",
-      description: "View generated fee voucher, pay via bank transfer/mobile cash, and upload your payment receipt.",
-    },
-    {
-      number: "04",
-      title: "Access All Facilities",
-      description: "Upon admin approval, receive your digital membership card and enjoy full club privileges.",
-    },
-  ];
-
-  const faqData = [
-    {
-      question: "How do I become an official member of Sports Hub?",
-      answer:
-        "First, register a free account. Next, browse our Membership Plans section and click 'Buy Membership'. Fill out your address and emergency contact details. Once submitted, your personal Member Dashboard is immediately activated while administration reviews your application.",
-    },
-    {
-      question: "How do monthly fee payments and receipt uploads work?",
-      answer:
-        "Administration generates monthly fee vouchers for each active member. You can view and download your voucher slip directly from your Member Dashboard. After paying via bank deposit, JazzCash, EasyPaisa or club cashier, simply upload a photo or screenshot of your receipt. Admin verifies the receipt to mark your voucher Paid.",
-    },
-    {
-      question: "How does the late payment fine calculation work?",
-      answer:
-        "Monthly vouchers have a specified Due Date (e.g. 10th of every month). If payment is made after the due date, an automatic daily penalty (e.g. Rs. 100/day) is added to your voucher total. Administration can configure the due date and late fine rate in the system.",
-    },
-    {
-      question: "Can I pay several months in advance?",
-      answer:
-        "Yes! Our Advance Payment system allows members to pay up to 12 months ahead. The system calculates the total fee, generates an Advance Voucher, and upon payment approval, records the prepaid months. Crucially, the system skips voucher generation for all advance-paid months so you are never double-billed.",
-    },
-    {
-      question: "How can someone obtain Administrator privileges?",
-      answer:
-        "Admin access is strictly controlled. Create a standard account, and then a database administrator can securely update that user's role from 'user' to 'admin' in SQL Server. No public admin registration is exposed.",
-    },
-    {
-      question: "Are sports facilities and tournaments included?",
-      answer:
-        "Yes, our club provides international grade arenas including cricket nets, Olympic swimming pools, synthetic tennis courts, indoor badminton, squash courts, and high-performance gyms. Members can also register for tournaments directly from their dashboard.",
-    },
-  ];
-
-  const footerLinks = [
-    { name: "Home", href: "#home" },
-    { name: "About Us", to: "/about" },
-    { name: "Services", to: "/services" },
-    { name: "Sports Arenas", href: "#sports" },
-    { name: "Membership Plans", href: "#plans" },
-    { name: "Tournaments", href: "#events" },
-    { name: "FAQ", href: "#faq" },
-  ];
-
-  const handleNavClick = (href) => {
-    const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleBuyPlan = (plan) => {
-    setSelectedPlanForModal(plan);
-    setIsEnrollModalOpen(true);
-  };
+  const featured = clubs.slice(0, 3);
 
   return (
     <div className="page-enter min-h-screen overflow-x-clip bg-[#0c0c0e] font-sans text-zinc-100">
-      <style>{`
-        .sports-section-bg {
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
-          background-attachment: scroll;
-        }
-        .sports-bg-about { background-image: linear-gradient(rgba(12,12,14,.88), rgba(12,12,14,.94)), url("https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-portals { background-image: linear-gradient(rgba(9,9,11,.89), rgba(9,9,11,.94)), url("https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-plans { background-image: linear-gradient(rgba(18,18,22,.90), rgba(18,18,22,.95)), url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-arenas { background-image: linear-gradient(rgba(9,9,11,.86), rgba(9,9,11,.93)), url("https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-modules { background-image: linear-gradient(rgba(18,18,22,.90), rgba(18,18,22,.95)), url("https://images.unsplash.com/photo-1531415074968-036ba1b575da?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-services { background-image: linear-gradient(rgba(9,9,11,.88), rgba(9,9,11,.94)), url("https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-events { background-image: linear-gradient(rgba(18,18,22,.88), rgba(18,18,22,.94)), url("https://images.unsplash.com/photo-1508098682722-e99c643e7f0b?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-workflow { background-image: linear-gradient(rgba(9,9,11,.90), rgba(9,9,11,.95)), url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=2000&q=85"); }
-        .sports-bg-faq { background-image: linear-gradient(rgba(0,0,0,.76), rgba(0,0,0,.90)), url("https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=2000&q=85"); }
-         @media (prefers-reduced-motion: reduce) {
-          .sports-section-bg { background-attachment: scroll; }
-        }
-      `}</style>
-      {/* SHARED PUBLIC NAVBAR (identical on landing / about / services) */}
-      <PublicNavbar />
-
       {/* =========================================================
-          HERO SECTION
+          HERO
       ========================================================= */}
-      <section id="home" className="keep-dark relative min-h-[780px] overflow-hidden bg-[#09090b]">
-        {/* HERO BACKGROUND IMAGE */}
-        <img
-          src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=2200&q=90"
-          alt="Sports Hub Club"
-          className="absolute inset-0 h-full w-full object-cover opacity-35"
+      <section id="home" className="keep-dark relative overflow-hidden bg-[#09090b]">
+        {/* Deliberately not a stock photograph: a lit gradient plus a faint grid
+            renders identically everywhere and can never show a broken image. */}
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(120% 120% at 12% 0%, rgba(249,115,22,0.22), transparent 55%), radial-gradient(90% 90% at 92% 8%, rgba(249,115,22,0.12), transparent 50%)",
+          }}
         />
-
-        {/* OVERLAYS (Black & Orange transitions) */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/40" />
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage: "radial-gradient(85% 80% at 50% 15%, black, transparent)",
+            WebkitMaskImage: "radial-gradient(85% 80% at 50% 15%, black, transparent)",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-black/40" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-black/60" />
-        <div className="absolute top-1/4 right-10 h-96 w-96 rounded-full bg-orange-500/10 blur-[130px] pointer-events-none" />
+        <div className="pointer-events-none absolute right-10 top-1/4 h-96 w-96 rounded-full bg-orange-500/10 blur-[130px]" />
 
-        {/* HERO CONTENT: 2-COLUMN GRID (LOGO OPPOSITE TO WORDING) */}
-        <div className="relative z-10 mx-auto grid min-h-[780px] max-w-7xl grid-cols-1 items-center gap-12 px-5 pt-44 pb-28 lg:pt-28 lg:grid-cols-12 sm:px-6 lg:px-8">
-          {/* LEFT: WORDING */}
+        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 items-center gap-14 px-5 pb-36 pt-32 sm:px-6 lg:grid-cols-12 lg:px-8 lg:pb-40 lg:pt-40">
           <Reveal variant="left" className="lg:col-span-7">
             <div className="mb-6 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.25em] text-orange-500">
               <span className="h-px w-10 bg-orange-500" />
-              Complete Sports Club Management Platform
+              Sports Club Management Platform
             </div>
 
-            <h1 className="text-[44px] font-black leading-[1.03] tracking-[-0.03em] text-white sm:text-[62px] lg:text-[74px]">
-              Stronger Club.
+            <h1 className="text-[42px] font-black leading-[1.03] tracking-[-0.03em] text-white sm:text-[58px] lg:text-[70px]">
+              Every club.
               <br />
-              <span className="font-normal text-orange-500">
-                Peak Performance.
-              </span>
+              <span className="font-normal text-orange-500">One platform.</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-[15px] leading-8 text-zinc-300 sm:text-[16px]">
-              Sports Hub brings athletes, administrative oversight, membership subscription workflows, monthly fee vouchers, late fine automation, and tournament bookings together through one connected system.
+              Sports Hub runs the memberships, monthly fees, coaching, attendance and
+              tournaments of every club on the platform - and gives members one login to
+              find the right club, join it and manage everything from their phone.
             </p>
 
             <div className="mt-9 flex flex-wrap gap-3">
-              <button
-                onClick={() => handleNavClick("#plans")}
-                className="inline-flex items-center gap-3 rounded-none bg-orange-500 px-7 py-4 text-xs font-black uppercase tracking-wider text-black transition-all hover:bg-white hover:shadow-2xl"
+              <Link
+                to="/clubs"
+                className="inline-flex items-center gap-3 bg-orange-500 px-7 py-4 text-xs font-black uppercase tracking-wider text-black transition-all hover:bg-white hover:shadow-2xl"
               >
-                Buy Membership
+                Find a Club
                 <ArrowRight size={16} />
-              </button>
+              </Link>
 
-              <button
-                onClick={() => handleNavClick("#sports")}
-                className="inline-flex items-center gap-3 rounded-none border border-zinc-700 bg-zinc-900/90 px-7 py-4 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm transition hover:border-orange-500 hover:text-orange-400"
+              <Link
+                to="/for-clubs"
+                className="inline-flex items-center gap-3 border border-zinc-700 bg-zinc-900/80 px-7 py-4 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-sm transition hover:border-orange-500 hover:text-orange-400"
               >
-                Explore Arenas
-                <Compass size={16} />
-              </button>
+                For Club Owners
+                <ArrowUpRight size={16} />
+              </Link>
+            </div>
 
-              <button
-                onClick={() => handleNavClick("#about")}
-                className="inline-flex items-center gap-3 rounded-none border border-white/20 bg-white/5 px-7 py-4 text-xs font-bold uppercase tracking-wider text-zinc-300 backdrop-blur-sm transition hover:bg-white hover:text-black"
-              >
-                Club Overview
-                <ArrowRight size={16} />
-              </button>
+            <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] text-zinc-400">
+              <span className="inline-flex items-center gap-2">
+                <ShieldCheck size={14} className="text-orange-500" />
+                Each club's data is isolated
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <CreditCard size={14} className="text-orange-500" />
+                Fees, receipts and fines in one ledger
+              </span>
             </div>
           </Reveal>
 
-          {/* RIGHT: ANIMATED SPORTS HUB LOGO (OPPOSITE TO WORDING) */}
-          <Reveal variant="zoom" delay={150} className="flex items-center justify-center lg:col-span-5">
+          <Reveal variant="zoom" delay={150} className="lg:col-span-5">
             <div className="relative flex items-center justify-center">
-              {/* Pulsing Backglow Orb */}
-              <div className="absolute h-80 w-80 rounded-full bg-orange-500/25 blur-[100px] pointer-events-none animate-pulse" />
+              <div className="pointer-events-none absolute h-80 w-80 animate-pulse rounded-full bg-orange-500/25 blur-[100px]" />
 
-              {/* Glass Display Card Pedestal */}
-              <div className="relative flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-8 shadow-2xl backdrop-blur-xl">
-                {/* SVG Animated Logo */}
-                <div className="relative flex h-44 w-72 items-center justify-center transition duration-700 hover:scale-105 sm:h-56 sm:w-96">
+              <div className="relative flex w-full max-w-md flex-col items-center rounded-2xl border border-white/10 bg-white/[0.03] p-8 shadow-2xl backdrop-blur-xl">
+                <div className="flex h-40 w-full items-center justify-center">
                   <img
                     src="/sports-hub-logo.svg"
-                    alt="Sports Hub Animated Logo"
-                    className="h-full w-full object-contain filter drop-shadow-[0_0_35px_rgba(249,115,22,0.4)]"
+                    alt="Sports Hub"
+                    className="h-full w-auto object-contain drop-shadow-[0_0_35px_rgba(249,115,22,0.4)]"
                   />
                 </div>
 
-                {/* Badge Below Logo */}
-                <div className="mt-4 flex items-center gap-2 border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 backdrop-blur-md">
+                <div className="mt-5 w-full divide-y divide-white/10 border border-white/10 bg-black/30">
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+                      Live clubs
+                    </span>
+                    <span className="text-sm font-black text-white">
+                      {stats?.TotalClubs ?? "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+                      Membership plans
+                    </span>
+                    <span className="text-sm font-black text-white">
+                      {stats?.PlanCount ?? "-"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+                      Cities
+                    </span>
+                    <span className="text-sm font-black text-white">
+                      {stats?.CityCount ?? "-"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2 border border-orange-500/30 bg-orange-500/10 px-4 py-1.5">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-500" />
                   </span>
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em] text-orange-400">
-                    Official Sports Hub Emblem
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">
+                    Reading live data
                   </span>
                 </div>
               </div>
@@ -420,580 +342,361 @@ function LandingPage() {
           </Reveal>
         </div>
 
-        {/* HERO BOTTOM STATS RIBBON */}
-<div className="absolute bottom-0 left-0 right-0 z-10 border-t border-zinc-800 bg-[#0c0c0f]/85 backdrop-blur-xl">
-  <Reveal group className="mx-auto grid max-w-7xl grid-cols-2 gap-3 px-4 py-4 sm:grid-cols-4 sm:gap-0 sm:px-0 sm:py-0">
-    {[
-      {
-        value: 35,
-        suffix: "+",
-        label: "Sports Arenas",
-        icon: Dumbbell,
-      },
-      {
-        value: 25,
-        suffix: "+",
-        label: "Elite Services",
-        icon: Sparkles,
-      },
-      {
-        value: 275,
-        suffix: clubStats?.stats?.ActiveMembers ? "" : "+",
-        label: "Active Members",
-        icon: Users,
-      },
-      {
-        value: "24/7",
-        label: "Organized Club Access",
-        icon: Clock,
-        isStatic: true,
-      },
-    ].map((stat, index) => {
-      const Icon = stat.icon;
+        {/* LIVE COUNTERS */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-zinc-800 bg-[#0c0c0f]/85 backdrop-blur-xl">
+          <Reveal group className="mx-auto grid max-w-7xl grid-cols-2 px-4 sm:grid-cols-4 sm:px-0">
+            {counters.map((stat, index) => {
+              const Icon = stat.icon;
 
-      return (
-        <div
-          key={stat.label}
-          className={`group relative overflow-hidden border border-zinc-800 bg-[#121215] px-5 py-5 transition-all duration-300
-            hover:border-orange-500/70
-            hover:bg-orange-500/5
-            hover:shadow-lg
-            hover:shadow-orange-500/10
-            sm:border-y-0 sm:border-l-0 sm:border-r-0 sm:px-7 sm:py-6
-            ${
-              index !== 0
-                ? "sm:border-l sm:border-zinc-800"
-                : ""
-            }`}
-        >
-          {/* Orange hover glow */}
-          <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-orange-500/0 blur-3xl transition-all duration-500 group-hover:bg-orange-500/20" />
+              return (
+                <div
+                  key={stat.label}
+                  className={`group relative overflow-hidden px-5 py-5 transition-colors duration-300 hover:bg-orange-500/5 sm:px-7 sm:py-6 ${
+                    index !== 0 ? "sm:border-l sm:border-zinc-800" : ""
+                  }`}
+                >
+                  <div className="absolute left-0 top-0 h-[2px] w-0 bg-orange-500 transition-all duration-500 group-hover:w-full" />
 
-          {/* Top orange accent */}
-          <div className="absolute left-0 top-0 h-[2px] w-0 bg-orange-500 transition-all duration-500 group-hover:w-full" />
+                  <div className="relative flex items-center justify-between">
+                    <div>
+                      <div className="text-2xl font-black tracking-tight text-white transition-colors duration-300 group-hover:text-orange-400 sm:text-3xl">
+                        <CountUp value={Number(stat.value) || 0} />
+                      </div>
+                      <div className="mt-2 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-500 transition-colors duration-300 group-hover:text-orange-400">
+                        {stat.label}
+                      </div>
+                    </div>
 
-          <div className="relative flex items-center justify-between">
-            <div>
-              <div className="text-2xl font-black tracking-tight text-white transition-colors duration-300 group-hover:text-orange-400 sm:text-3xl">
-                {stat.isStatic ? (
-                  stat.value
-                ) : (
-                  <CountUp
-                    value={Number(stat.value)}
-                    suffix={stat.suffix}
-                  />
-                )}
-              </div>
-
-              <div className="mt-2 text-[9px] font-bold uppercase tracking-[0.14em] text-zinc-500 transition-colors duration-300 group-hover:text-orange-400">
-                {stat.label}
-              </div>
-            </div>
-
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-900 text-zinc-500 transition-all duration-300 group-hover:border-orange-500/50 group-hover:bg-orange-500 group-hover:text-black group-hover:shadow-lg group-hover:shadow-orange-500/20">
-              <Icon size={19} />
-            </div>
-          </div>
-
-          {/* Bottom hover indicator */}
-          <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-orange-500 transition-all duration-500 group-hover:w-full" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-zinc-800 bg-zinc-900 text-zinc-500 transition-all duration-300 group-hover:border-orange-500/50 group-hover:bg-orange-500 group-hover:text-black">
+                      <Icon size={19} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </Reveal>
         </div>
-      );
-    })}
-  </Reveal>
-</div>
       </section>
 
       {/* =========================================================
-          ABOUT SECTION
+          CLUBS ON THE PLATFORM
       ========================================================= */}
-      <section id="about" className="sports-section-bg sports-bg-about scroll-mt-20 py-24 sm:py-28">
-        <div className="mx-auto grid max-w-7xl items-center gap-16 px-5 sm:px-6 lg:grid-cols-2 lg:px-8">
-          {/* IMAGE */}
-          <Reveal variant="left" className="relative">
-            <div className="overflow-hidden border border-zinc-800">
-              <img
-                src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=2200&q=90"
-                alt="Modern sports complex"
-                className="h-[480px] w-full object-cover transition duration-700 hover:scale-105 sm:h-[540px]"
-              />
+      <section className="border-b border-zinc-800 py-24">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+            <div>
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
+                <span className="h-px w-8 bg-orange-500" />
+                Club Directory
+              </div>
+
+              <h2 className="mt-5 text-[34px] font-black leading-tight text-white sm:text-[44px]">
+                Clubs running on
+                <span className="block font-normal text-orange-500">Sports Hub right now.</span>
+              </h2>
             </div>
 
-            <div className="keep-dark absolute bottom-0 left-0 bg-black p-6 border-t-2 border-r border-orange-500 text-white sm:px-9">
-              <div className="text-3xl font-black text-orange-500">1</div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-zinc-400">
-                Connected Club System
-              </div>
-            </div>
+            <Link
+              to="/clubs"
+              className="inline-flex w-fit items-center gap-2 border border-zinc-700 px-5 py-3 text-[11px] font-black uppercase tracking-wider text-zinc-200 transition hover:border-orange-500 hover:text-white"
+            >
+              View all clubs
+              <ArrowRight size={14} />
+            </Link>
           </Reveal>
 
-          {/* CONTENT */}
-          <Reveal variant="right" delay={120}>
+          {featured.length === 0 ? (
+            <div className="mt-12 border border-zinc-800 bg-[#0e0e11] px-6 py-14 text-center">
+              <Building2 size={32} className="mx-auto text-zinc-700" />
+              <h3 className="mt-4 text-lg font-bold text-white">No clubs are listed yet</h3>
+              <p className="mx-auto mt-2 max-w-md text-[13px] leading-6 text-zinc-500">
+                As soon as a club is approved onto the platform it appears here with its
+                facilities, coaches and membership plans.
+              </p>
+              <Link
+                to="/for-clubs"
+                className="mt-6 inline-flex items-center gap-2 bg-orange-500 px-6 py-3 text-[11px] font-black uppercase tracking-wider text-black transition hover:bg-white"
+              >
+                List your club
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          ) : (
+            <Reveal group className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featured.map((club) => (
+                <Link
+                  key={club.ClubID || club.Slug}
+                  to={`/clubs/${club.Slug}`}
+                  className="group flex flex-col overflow-hidden border border-zinc-800 bg-[#0e0e11] transition hover:border-orange-500"
+                >
+                  <div className="relative h-40 overflow-hidden bg-zinc-900">
+                    {club.CoverImageURL ? (
+                      <img
+                        src={club.CoverImageURL}
+                        alt={club.ClubName}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-900 to-zinc-800">
+                        <Trophy size={32} className="text-zinc-700" />
+                      </div>
+                    )}
+
+                    {club.LogoURL && (
+                      <div className="absolute -bottom-6 left-5 flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-zinc-700 bg-[#0c0c0e]">
+                        <img src={club.LogoURL} alt="" className="h-10 w-10 object-contain" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-1 flex-col p-5 pt-9">
+                    <h3 className="text-[15px] font-black text-white group-hover:text-orange-400">
+                      {club.ClubName}
+                    </h3>
+
+                    {club.Tagline && (
+                      <p className="mt-1 line-clamp-2 text-[12px] leading-6 text-zinc-500">
+                        {club.Tagline}
+                      </p>
+                    )}
+
+                    <div className="mt-4 flex flex-wrap items-center gap-4 text-[11px] text-zinc-500">
+                      {(club.City || club.Country) && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <MapPin size={13} className="text-orange-500" />
+                          {[club.City, club.Country].filter(Boolean).join(", ")}
+                        </span>
+                      )}
+                      <span className="inline-flex items-center gap-1.5">
+                        <Dumbbell size={13} className="text-orange-500" />
+                        {club.SportCount || 0} sport{Number(club.SportCount) === 1 ? "" : "s"}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between border-t border-zinc-800 pt-4">
+                      <div>
+                        <div className="text-[9px] font-bold uppercase tracking-[0.16em] text-zinc-500">
+                          From
+                        </div>
+                        <div className="text-[13px] font-black text-white">
+                          {money(club.FromPrice)}
+                          <span className="ml-1 text-[10px] font-medium text-zinc-500">/mo</span>
+                        </div>
+                      </div>
+
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-orange-500">
+                        View club
+                        <ArrowRight size={14} />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </Reveal>
+          )}
+        </div>
+      </section>
+
+      {/* =========================================================
+          HOW MEMBERS JOIN
+      ========================================================= */}
+      <section className="border-b border-zinc-800 bg-[#09090b] py-24">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <Reveal className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
-              About Sports Hub
+              For Members
             </div>
 
-            <h2 className="mt-5 text-[38px] font-black leading-[1.08] tracking-tight text-white sm:text-[50px]">
-              One platform for your
-              <span className="block font-normal text-orange-500">
-                entire athletic journey.
-              </span>
+            <h2 className="mt-5 text-[34px] font-black leading-tight text-white sm:text-[44px]">
+              Joining a club takes
+              <span className="block font-normal text-orange-500">four short steps.</span>
             </h2>
 
-            <p className="mt-6 text-[15px] leading-8 text-zinc-300">
-              Sports Hub combines world-class athletic facilities with modern digital membership and fee management. Instead of manual vouchers and untracked receipts, every application, payment, and voucher is stored with relational integrity in SQL Server.
+            <p className="mt-4 text-[14px] leading-7 text-zinc-400">
+              No paperwork at the front desk, no phone calls to check whether your payment
+              arrived. Everything happens in your own dashboard.
+            </p>
+          </Reveal>
+
+          <Reveal group className="mt-14 grid border-l border-t border-zinc-800 md:grid-cols-2 lg:grid-cols-4">
+            {MEMBER_STEPS.map((step) => (
+              <div
+                key={step.number}
+                className="border-b border-r border-zinc-800 p-7 transition hover:bg-zinc-900/40 sm:p-8"
+              >
+                <div className="text-5xl font-black text-orange-500/30">{step.number}</div>
+                <h3 className="mt-6 text-[16px] font-black text-white">{step.title}</h3>
+                <p className="mt-2 text-[12px] leading-6 text-zinc-400">{step.body}</p>
+              </div>
+            ))}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* =========================================================
+          WHAT'S INSIDE
+      ========================================================= */}
+      <section className="border-b border-zinc-800 py-24">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <Reveal className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-end">
+            <div>
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
+                <span className="h-px w-8 bg-orange-500" />
+                What is inside
+              </div>
+
+              <h2 className="mt-5 text-[34px] font-black leading-tight text-white sm:text-[44px]">
+                One system for the front desk,
+                <span className="block font-normal text-orange-500">
+                  the coaches and the accounts.
+                </span>
+              </h2>
+            </div>
+
+            <p className="text-[14px] leading-7 text-zinc-400">
+              Every module below is part of the platform - nothing is sold as an add-on,
+              and every club gets all of it inside its own workspace.
+            </p>
+          </Reveal>
+
+          <Reveal group className="mt-14 grid border-l border-t border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+            {MODULES.map((module) => {
+              const Icon = module.icon;
+              return (
+                <div
+                  key={module.title}
+                  className="group border-b border-r border-zinc-800 p-7 transition hover:border-orange-500/40 hover:bg-orange-500/5"
+                >
+                  <div className="flex h-11 w-11 items-center justify-center border border-zinc-700 bg-zinc-900 text-orange-500 transition group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black">
+                    <Icon size={20} />
+                  </div>
+
+                  <h3 className="mt-6 text-[15px] font-bold text-white">{module.title}</h3>
+                  <p className="mt-2 text-[11.5px] leading-6 text-zinc-400">{module.body}</p>
+                </div>
+              );
+            })}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* =========================================================
+          FOR CLUB OWNERS
+      ========================================================= */}
+      <section className="border-b border-zinc-800 bg-[#09090b] py-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 sm:px-6 lg:grid-cols-2 lg:px-8">
+          <Reveal variant="left">
+            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
+              <span className="h-px w-8 bg-orange-500" />
+              For Club Owners
+            </div>
+
+            <h2 className="mt-5 text-[34px] font-black leading-tight text-white sm:text-[44px]">
+              Bring your club onto
+              <span className="block font-normal text-orange-500">the platform.</span>
+            </h2>
+
+            <p className="mt-5 text-[14px] leading-7 text-zinc-400">
+              You get a private admin workspace, a public page on the directory that brings
+              members to you, and a member portal that answers "did my payment arrive?"
+              without a phone call.
             </p>
 
-            <p className="mt-4 text-[15px] leading-8 text-zinc-400">
-              Club members can monitor their digital cards, track upcoming fees, submit Cloudinary-backed payment proofs, request advance payments, and register for championships.
-            </p>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
               {[
-                "Role-Based Club Access",
-                "Automated Fee Vouchers",
-                "Late Payment Fines Logic",
-                "Advance Prepayment System",
-                "Digital Membership Cards",
-                "Tournaments & Registration",
+                "Your own workspace, separate from every club",
+                "Public club page with plans and events",
+                "Member, staff and coach roles built in",
+                "Reports across fees, attendance and payroll",
               ].map((item) => (
-                <div key={item} className="flex items-center gap-3 border-b border-zinc-800 pb-3">
-                  <CheckCircle2 size={16} className="text-orange-500 shrink-0" />
-                  <span className="text-xs font-bold text-zinc-200">{item}</span>
+                <div key={item} className="flex items-start gap-3 border-b border-zinc-800 pb-3">
+                  <CheckCircle2 size={15} className="mt-0.5 shrink-0 text-orange-500" />
+                  <span className="text-[12px] font-semibold leading-5 text-zinc-200">{item}</span>
                 </div>
               ))}
             </div>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Link
-                to="/about"
-                className="inline-flex items-center gap-2 rounded-none bg-orange-500 px-6 py-3.5 text-xs font-black uppercase tracking-wider text-black transition hover:bg-white hover:shadow-xl"
+                to="/for-clubs"
+                className="inline-flex items-center gap-2 bg-orange-500 px-6 py-3.5 text-[11px] font-black uppercase tracking-wider text-black transition hover:bg-white"
               >
-                Learn More About Us & Team
+                See plans & get started
                 <ArrowRight size={15} />
               </Link>
 
-              <button
-                onClick={() => handleNavClick("#portals")}
-                className="inline-flex items-center gap-3 border-b-2 border-orange-500 pb-2 text-xs font-extrabold uppercase tracking-wider text-white transition hover:text-orange-400"
+              <Link
+                to="/owner/login"
+                className="inline-flex items-center gap-2 border-b-2 border-orange-500 pb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-white transition hover:text-orange-400"
               >
-                Explore dedicated portals
-                <ArrowRight size={16} />
-              </button>
+                Owner sign in
+              </Link>
             </div>
+          </Reveal>
+
+          <Reveal variant="right" delay={120} className="grid gap-4 sm:grid-cols-2">
+            {[
+              { icon: Building2, value: stats?.TotalClubs ?? 0, label: "Clubs live" },
+              { icon: Users, value: stats?.MemberCount ?? 0, label: "Active memberships" },
+              { icon: Sparkles, value: stats?.CoachCount ?? 0, label: "Coaches on staff" },
+              { icon: Trophy, value: stats?.UpcomingEvents ?? 0, label: "Events scheduled" },
+            ].map((card) => (
+              <div key={card.label} className="border border-zinc-800 bg-[#0e0e11] p-6">
+                <card.icon size={20} className="text-orange-500" />
+                <div className="mt-5 text-3xl font-black text-white">
+                  <CountUp value={Number(card.value) || 0} />
+                </div>
+                <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                  {card.label}
+                </div>
+              </div>
+            ))}
           </Reveal>
         </div>
       </section>
 
       {/* =========================================================
-          PORTALS SECTION
+          ISOLATION
       ========================================================= */}
-      <section id="portals" className="sports-section-bg sports-bg-portals scroll-mt-20 py-24 sm:py-28">
+      <section className="border-b border-zinc-800 py-24">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
           <Reveal className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
-              Dedicated Workspaces
+              Privacy by design
             </div>
 
-            <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-              A portal designed for
-              <span className="block font-normal text-orange-500">
-                every club responsibility.
-              </span>
-            </h2>
-
-            <p className="mt-5 max-w-xl text-[14px] leading-7 text-zinc-400">
-              Every user receives an intuitive workspace equipped with the exact tools and records needed for seamless athletic and administrative operations.
-            </p>
-          </Reveal>
-
-          <Reveal group className="mt-14 grid gap-6 md:grid-cols-2">
-            {portals.map((portal) => {
-              const Icon = portal.icon;
-
-              return (
-                <div
-                  key={portal.title}
-                  className="group grid overflow-hidden border border-zinc-800 bg-[#121215] transition duration-300 hover:border-orange-500/60 md:grid-cols-2"
-                >
-                  {/* IMAGE */}
-                  <div className="relative min-h-[300px] overflow-hidden">
-                    <img
-                      src={portal.image}
-                      alt={portal.title}
-                      className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                    <div className="absolute bottom-6 left-6">
-                      <Icon size={38} className="text-orange-500" />
-                    </div>
-                  </div>
-
-                  {/* CONTENT */}
-                  <div className="flex flex-col justify-center p-6 sm:p-7">
-                    <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                      {portal.subtitle}
-                    </div>
-
-                    <h3 className="mt-2 text-[21px] font-black text-white">
-                      {portal.title}
-                    </h3>
-
-                    <p className="mt-3 text-[12.5px] leading-6 text-zinc-400">
-                      {portal.description}
-                    </p>
-
-                    <div className="mt-5 space-y-2">
-                      {portal.features.map((feature) => (
-                        <div
-                          key={feature}
-                          className="flex items-center gap-2 text-[11px] font-medium text-zinc-300"
-                        >
-                          <span className="h-1.5 w-1.5 shrink-0 rounded-none bg-orange-500" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =========================================================
-          MEMBERSHIP PLANS (DATABASE DRIVEN)
-      ========================================================= */}
-      <section id="plans" className="sports-section-bg sports-bg-plans scroll-mt-20 py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <Reveal className="max-w-2xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-              <span className="h-px w-8 bg-orange-500" />
-              Membership Plans
-              <span className="h-px w-8 bg-orange-500" />
-            </div>
-
-            <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-              Choose your tier.
-              <span className="block font-normal text-orange-500">
-                Unlock peak performance.
-              </span>
-            </h2>
-
-            <p className="mt-4 text-[14px] leading-7 text-zinc-400">
-              Select an official membership package. Non-members can sign up and enroll in seconds.
-            </p>
-          </Reveal>
-
-          <Reveal group className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {plans.map((plan) => (
-              <div
-                key={plan.PlanID}
-                className="group relative flex flex-col justify-between overflow-hidden border border-zinc-800 bg-[#0e0e11] p-6 transition-all duration-300 hover:border-orange-500 hover:shadow-2xl hover:shadow-orange-500/5"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-orange-500">
-                      Tier {plan.PlanID}
-                    </span>
-                    <span className="rounded-none border border-zinc-800 bg-zinc-900 px-2 py-0.5 text-[9px] font-bold uppercase text-zinc-400">
-                      {plan.DurationMonths} Months
-                    </span>
-                  </div>
-
-                  <h3 className="mt-4 text-xl font-black text-white group-hover:text-orange-400 transition">
-                    {plan.PlanName}
-                  </h3>
-
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-white">
-                      Rs. {Number(plan.MonthlyFee).toLocaleString()}
-                    </span>
-                    <span className="text-xs text-zinc-400 font-medium">/ month</span>
-                  </div>
-
-                  <p className="mt-4 text-xs leading-6 text-zinc-400 min-h-[60px]">
-                    {plan.Description}
-                  </p>
-
-                  <div className="mt-6 border-t border-zinc-800/80 pt-4 space-y-2">
-                    <div className="flex items-center gap-2 text-[11px] text-zinc-300">
-                      <CheckCircle2 size={13} className="text-orange-500 shrink-0" />
-                      Digital Membership Card
-                    </div>
-                    <div className="flex items-center gap-2 text-[11px] text-zinc-300">
-                      <CheckCircle2 size={13} className="text-orange-500 shrink-0" />
-                      Monthly Fee Voucher Access
-                    </div>
-                    <div className="flex items-center gap-2 text-[11px] text-zinc-300">
-                      <CheckCircle2 size={13} className="text-orange-500 shrink-0" />
-                      Tournament Eligibility
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleBuyPlan(plan)}
-                  className="mt-8 flex w-full items-center justify-center gap-2 rounded-none bg-zinc-800 py-3 text-xs font-bold uppercase tracking-wider text-white transition-all duration-200 group-hover:bg-orange-500 group-hover:text-black"
-                >
-                  Buy Membership
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            ))}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =========================================================
-          SPORTS ARENAS (DATABASE DRIVEN)
-      ========================================================= */}
-      <section id="sports" className="sports-section-bg sports-bg-arenas scroll-mt-20 py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-            <div>
-              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                <span className="h-px w-8 bg-orange-500" />
-                World-Class Infrastructure
-              </div>
-
-              <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-                Olympic standards.
-                <span className="block font-normal text-orange-500">
-                  Built for champion athletes.
-                </span>
-              </h2>
-            </div>
-
-            <p className="max-w-md text-[14px] leading-7 text-zinc-400">
-              Sports Hub houses multi-sport complexes with international specifications, tournament illumination, climate control, and digital scoring.
-            </p>
-          </Reveal>
-
-          <Reveal group className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {sports.map((sport, index) => (
-              <div
-                key={sport.SportID}
-                className="group overflow-hidden border border-zinc-800 bg-[#121215] transition hover:border-orange-500/60"
-              >
-                <div className="relative flex h-56 items-center justify-center overflow-hidden bg-zinc-900">
-                  <img
-                    src={sport.ImageURL || "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80"}
-                    alt={sport.SportName}
-                    className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                  <span className="absolute right-4 top-4 rounded-none bg-black/60 px-2 py-0.5 text-[9px] font-bold text-orange-400 border border-zinc-700 backdrop-blur-md">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-base font-extrabold text-white group-hover:text-orange-400 transition">
-                    {sport.SportName}
-                  </h3>
-                  <p className="mt-2 text-xs leading-6 text-zinc-400">
-                    {sport.Description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =========================================================
-          CORE MODULES
-      ========================================================= */}
-      <section className="sports-section-bg sports-bg-modules py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <Reveal className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-end">
-            <div>
-              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                <span className="h-px w-8 bg-orange-500" />
-                System Modules
-              </div>
-
-              <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-                Everything your sports club
-                <span className="block font-normal text-orange-500">
-                  needs in one system.
-                </span>
-              </h2>
-            </div>
-
-            <p className="text-[14px] leading-7 text-zinc-400">
-              Manage complete club operations through connected modules built around everyday sports, administrative, and financial workflows.
-            </p>
-          </Reveal>
-
-          <Reveal group className="mt-14 grid border-l border-t border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
-            {modules.map((module) => {
-              const Icon = module.icon;
-              return (
-                <div
-                  key={module.title}
-                  className="group border-b border-r border-zinc-800 p-7 transition hover:bg-orange-500/5 hover:border-orange-500/40"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center border border-zinc-700 bg-zinc-900 text-orange-500 transition group-hover:border-orange-500 group-hover:bg-orange-500 group-hover:text-black">
-                    <Icon size={20} />
-                  </div>
-
-                  <h3 className="mt-6 text-[15px] font-bold text-white">
-                    {module.title}
-                  </h3>
-
-                  <p className="mt-2 text-[11px] leading-6 text-zinc-400">
-                    {module.description}
-                  </p>
-                </div>
-              );
-            })}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =========================================================
-          CLUB SERVICES
-      ========================================================= */}
-      <section id="services" className="sports-section-bg sports-bg-services scroll-mt-20 py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <Reveal className="max-w-2xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-              <span className="h-px w-8 bg-orange-500" />
-              Member Amenities
-              <span className="h-px w-8 bg-orange-500" />
-            </div>
-
-            <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-              Specialized services.
-              <span className="block font-normal text-orange-500">
-                Beyond traditional gyms.
-              </span>
+            <h2 className="mt-5 text-[34px] font-black leading-tight text-white sm:text-[44px]">
+              Every club keeps its
+              <span className="block font-normal text-orange-500">own books.</span>
             </h2>
           </Reveal>
 
-          <Reveal group className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {services.map((svc) => (
-              <div
-                key={svc.ServiceID}
-                className="overflow-hidden border border-zinc-800 bg-[#121215] transition hover:border-orange-500/50"
-              >
-                <div className="h-44 overflow-hidden relative">
-                  <img
-                    src={svc.ImageURL || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80"}
-                    alt={svc.ServiceName}
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+          <Reveal group className="mt-12 grid gap-6 md:grid-cols-3">
+            {[
+              {
+                icon: Lock,
+                title: "Separated in the database",
+                body: "Clubs are isolated at row level inside the database itself, not just hidden in the interface. A query issued for one club cannot return another club's members, vouchers or receipts.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Roles decide what you see",
+                body: "Admins, coaches and members each get their own view. A club admin sees only the people who hold a membership with that club - never the account list of the platform.",
+              },
+              {
+                icon: Receipt,
+                title: "Every payment has a trail",
+                body: "Vouchers, uploaded receipts, approvals and fines are stored as records with dates and status, so disputes are settled by the history rather than memory.",
+              },
+            ].map((card) => (
+              <div key={card.title} className="border border-zinc-800 bg-[#0e0e11] p-7">
+                <div className="flex h-11 w-11 items-center justify-center border border-orange-500/40 bg-orange-500/10">
+                  <card.icon size={19} className="text-orange-500" />
                 </div>
-                <div className="p-5">
-                  <h4 className="text-sm font-black text-white">{svc.ServiceName}</h4>
-                  <p className="mt-2 text-xs text-zinc-400 leading-relaxed">
-                    {svc.Description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </Reveal>
-
-          <Reveal variant="fade" className="mt-12 text-center">
-            <Link
-              to="/services"
-              className="inline-flex items-center gap-3 rounded-none bg-orange-500 px-7 py-4 text-xs font-black uppercase tracking-wider text-black transition hover:bg-white hover:shadow-2xl"
-            >
-              Explore Full Detailed Services & Amenities
-              <ArrowRight size={16} />
-            </Link>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =========================================================
-          UPCOMING EVENTS & TOURNAMENTS
-      ========================================================= */}
-      <section id="events" className="sports-section-bg sports-bg-events scroll-mt-20 py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-            <div>
-              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                <span className="h-px w-8 bg-orange-500" />
-                Competitions & Championships
-              </div>
-
-              <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-                Upcoming Tournaments.
-                <span className="block font-normal text-orange-500">
-                  Register and compete.
-                </span>
-              </h2>
-            </div>
-
-            <Link
-              to={isAuthenticated ? "/user/events" : "/login"}
-              className="inline-flex items-center gap-2 rounded-none border border-zinc-700 bg-zinc-800 px-5 py-3 text-xs font-bold text-white transition hover:bg-orange-500 hover:text-black"
-            >
-              View Member Events Portal
-              <ArrowRight size={14} />
-            </Link>
-          </Reveal>
-
-          <Reveal group className="mt-14 grid gap-6 md:grid-cols-3">
-            {events.map((ev) => (
-              <div
-                key={ev.EventID}
-                className="group overflow-hidden border border-zinc-800 bg-[#0e0e11] transition duration-300 hover:border-orange-500"
-              >
-                <div className="relative h-48 overflow-hidden bg-zinc-900">
-                  <img
-                    src={ev.EventImageURL || "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=1200&q=80"}
-                    alt={ev.EventName}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
-                  <div className="absolute top-3 left-3 bg-orange-500 px-2 py-0.5 text-[9px] font-black text-black">
-                    {ev.SportName || "Tournament"}
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-orange-400">
-                    📅 {new Date(ev.EventDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                  </div>
-
-                  <h3 className="mt-2 text-base font-extrabold text-white group-hover:text-orange-400 transition">
-                    {ev.EventName}
-                  </h3>
-
-                  <p className="mt-2 text-xs leading-5 text-zinc-400">
-                    {ev.Description}
-                  </p>
-
-                  <div className="mt-4 flex items-center justify-between border-t border-zinc-800 pt-3 text-[11px] text-zinc-400">
-                    <span>📍 {ev.Venue || "Main Complex"}</span>
-                    <span>👥 {ev.RegisteredCount || 0} / {ev.MaximumParticipants || "Open"}</span>
-                  </div>
-
-                  <div className="mt-4 space-y-2">
-                    <button
-                      onClick={() => setSelectedEventForDetails(ev)}
-                      className="flex w-full items-center justify-center gap-1.5 rounded-none border border-zinc-700 bg-zinc-800/80 py-2 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-700 hover:text-white"
-                    >
-                      <Info size={13} />
-                      View Details & Rules
-                    </button>
-
-                    <Link
-                      to={isAuthenticated ? "/user/events" : "/login"}
-                      className="block w-full text-center rounded-none bg-orange-500 py-2.5 text-xs font-extrabold uppercase text-black transition hover:bg-white"
-                    >
-                      {isAuthenticated ? "Join Tournament" : "Login to Register"}
-                    </Link>
-                  </div>
-                </div>
+                <h3 className="mt-5 text-[15px] font-black text-white">{card.title}</h3>
+                <p className="mt-2 text-[12px] leading-6 text-zinc-400">{card.body}</p>
               </div>
             ))}
           </Reveal>
@@ -1001,51 +704,9 @@ function LandingPage() {
       </section>
 
       {/* =========================================================
-          HOW IT WORKS
+          FAQ
       ========================================================= */}
-      <section className="sports-section-bg sports-bg-workflow py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <Reveal className="max-w-2xl">
-            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-              <span className="h-px w-8 bg-orange-500" />
-              Workflow
-            </div>
-
-            <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-              Simple steps.
-              <span className="block font-normal text-orange-500">
-                Complete transparency.
-              </span>
-            </h2>
-          </Reveal>
-
-          <Reveal group className="mt-14 grid border-l border-t border-zinc-800 md:grid-cols-2 lg:grid-cols-4">
-            {steps.map((step) => (
-              <div
-                key={step.number}
-                className="border-b border-r border-zinc-800 p-7 sm:p-8 hover:bg-zinc-900/40 transition"
-              >
-                <div className="text-5xl font-black text-orange-500/30">
-                  {step.number}
-                </div>
-
-                <h3 className="mt-6 text-[16px] font-black text-white">
-                  {step.title}
-                </h3>
-
-                <p className="mt-2 text-[12px] leading-6 text-zinc-400">
-                  {step.description}
-                </p>
-              </div>
-            ))}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =========================================================
-          FAQ ACCORDION
-      ========================================================= */}
-      <section id="faq" className="sports-section-bg sports-bg-faq scroll-mt-20 py-24 sm:py-28">
+      <section id="faq" className="scroll-mt-24 border-b border-zinc-800 bg-[#09090b] py-24">
         <div className="mx-auto max-w-4xl px-5 sm:px-6">
           <Reveal className="mx-auto max-w-2xl text-center">
             <div className="flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
@@ -1054,16 +715,14 @@ function LandingPage() {
               <span className="h-px w-8 bg-orange-500" />
             </div>
 
-            <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[48px]">
-              Everything you need to
-              <span className="block font-normal text-orange-500">
-                know about Sports Hub.
-              </span>
+            <h2 className="mt-5 text-[34px] font-black leading-tight text-white sm:text-[44px]">
+              Questions members
+              <span className="block font-normal text-orange-500">usually ask first.</span>
             </h2>
           </Reveal>
 
-          <Reveal group className="mt-14 space-y-3">
-            {faqData.map((item, index) => {
+          <Reveal group className="mt-12 space-y-3">
+            {FAQ.map((item, index) => {
               const isOpen = openFAQ === index;
 
               return (
@@ -1107,188 +766,47 @@ function LandingPage() {
       </section>
 
       {/* =========================================================
-          CTA BANNER
+          FINAL CTA
       ========================================================= */}
-      <section className="sports-section-bg sports-bg-cta relative overflow-hidden py-24 border-t border-zinc-800">
-        <div className="absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-orange-500/10 blur-[130px]" />
+      <section className="relative overflow-hidden py-24">
+        <div className="pointer-events-none absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-orange-500/10 blur-[130px]" />
 
         <div className="relative mx-auto flex max-w-7xl flex-col justify-between gap-10 px-5 sm:px-6 lg:flex-row lg:items-center lg:px-8">
           <Reveal variant="left" className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
-              Elevate Your Fitness
+              Start today
             </div>
 
-            <h2 className="mt-5 text-[38px] font-black leading-tight text-white sm:text-[50px]">
-              Ready for premier
-              <span className="block font-normal text-orange-500">
-                sports club living?
-              </span>
+            <h2 className="mt-5 text-[34px] font-black leading-tight text-white sm:text-[46px]">
+              Find your club, or
+              <span className="block font-normal text-orange-500">bring yours online.</span>
             </h2>
 
             <p className="mt-5 max-w-xl text-[14px] leading-7 text-zinc-400">
-              Register an account today, select your tailored membership tier, and access world-class sports facilities, digital fee management, and tournaments.
+              Members join a club in minutes. Club owners get a complete management system
+              and a public page that keeps bringing in new members.
             </p>
           </Reveal>
 
-          <Link
-            to="/register"
-            className="inline-flex w-fit items-center gap-3 rounded-none bg-orange-500 px-8 py-4 text-xs font-black uppercase tracking-wider text-black transition-all hover:bg-white hover:shadow-2xl"
-          >
-            Register as a Member
-            <ArrowRight size={16} />
-          </Link>
+          <Reveal variant="right" delay={120} className="flex flex-wrap gap-3">
+            <Link
+              to="/clubs"
+              className="inline-flex items-center gap-3 bg-orange-500 px-8 py-4 text-xs font-black uppercase tracking-wider text-black transition-all hover:bg-white"
+            >
+              Browse clubs
+              <ArrowRight size={16} />
+            </Link>
+
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-3 border border-zinc-700 px-8 py-4 text-xs font-black uppercase tracking-wider text-white transition hover:border-orange-500 hover:text-orange-400"
+            >
+              Create an account
+            </Link>
+          </Reveal>
         </div>
       </section>
-
-      {/* =========================================================
-          FOOTER
-      ========================================================= */}
-      <footer id="contact" className="sports-section-bg sports-bg-footer text-zinc-400 border-t border-zinc-800">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8">
-          <div className="grid gap-12 border-b border-zinc-800 pb-14 md:grid-cols-12">
-            {/* BRAND */}
-            <div className="md:col-span-5">
-              <button onClick={scrollToTop} className="flex items-center gap-3">
-                <div className="flex h-12 w-[86px] items-center justify-center overflow-hidden rounded-lg border border-orange-500/40 bg-zinc-900 px-1.5">
-                  <img
-                    src="/sports-hub-logo.svg"
-                    alt="Sports Hub Logo"
-                    className="h-7 w-auto object-contain"
-                  />
-                </div>
-
-                <div className="text-left">
-                  <div className="text-xl font-black text-white">
-                    SPORTS <span className="text-orange-500">HUB</span>
-                  </div>
-                  <div className="mt-0.5 text-[8.5px] uppercase tracking-[0.22em] text-zinc-400">
-                    Club Management System
-                  </div>
-                </div>
-              </button>
-
-              <p className="mt-5 max-w-md text-xs leading-6 text-zinc-400">
-                Sports Hub is a premier sports and athletic institution providing Olympic swimming, cricket arenas, synthetic tennis courts, coaching academies, and relational fee management.
-              </p>
-
-              <div className="mt-6 space-y-2.5 text-xs text-zinc-400">
-                <div className="flex items-center gap-2.5">
-                  <span className="text-orange-500 font-bold">📍</span>
-                  Gulberg Town, Karachi, Pakistan
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-orange-500 font-bold">📞</span>
-                  +92 324 1234567
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-orange-500 font-bold">✉️</span>
-                  info@sportshub.com
-                </div>
-              </div>
-            </div>
-
-            {/* QUICK LINKS */}
-            <div className="md:col-span-2">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                Explore
-              </h3>
-
-              <div className="mt-5 space-y-2.5 text-xs">
-                {footerLinks.map((link) => (
-                  <button
-                    key={link.name}
-                    onClick={() => (link.to ? navigate(link.to) : handleNavClick(link.href))}
-                    className="block text-zinc-400 transition hover:text-white"
-                  >
-                    {link.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* PORTALS */}
-            <div className="md:col-span-2">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                Portals
-              </h3>
-
-              <div className="mt-5 space-y-2.5 text-xs text-zinc-400">
-                <Link to="/user/dashboard" className="block hover:text-white">
-                  Member Portal
-                </Link>
-                <Link to="/admin/dashboard" className="block hover:text-white">
-                  Admin Portal
-                </Link>
-                <Link to="/user/vouchers" className="block hover:text-white">
-                  Fee Vouchers
-                </Link>
-                <Link to="/user/events" className="block hover:text-white">
-                  Tournaments
-                </Link>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div className="md:col-span-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                Member Access
-              </h3>
-
-              <p className="mt-4 text-xs leading-6 text-zinc-400">
-                Experience full transparency with automated vouchers, receipts, and tournament registrations.
-              </p>
-
-              <Link
-                to="/register"
-                className="mt-5 inline-flex items-center gap-2 rounded-none bg-orange-500 px-5 py-3 text-xs font-black uppercase text-black transition hover:bg-white"
-              >
-                Sign Up Now
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
-          {/* BOTTOM */}
-          <div className="flex flex-col items-center justify-between gap-4 pt-7 text-[10px] sm:flex-row">
-            <p className="text-zinc-500">
-              © {new Date().getFullYear()} Sports Hub Management System. All rights reserved.
-            </p>
-
-            <button
-              onClick={scrollToTop}
-              className="flex items-center gap-1.5 text-zinc-400 transition hover:text-orange-500"
-            >
-              Back to top
-              <ArrowUp size={13} />
-            </button>
-          </div>
-        </div>
-      </footer>
-
-      {/* ENROLLMENT MODAL */}
-      <EnrollmentModal
-        plan={selectedPlanForModal}
-        isOpen={isEnrollModalOpen}
-        onClose={() => {
-          setIsEnrollModalOpen(false);
-          setSelectedPlanForModal(null);
-        }}
-      />
-
-      {/* EVENT DETAILS MODAL */}
-      {selectedEventForDetails && (
-        <EventDetailsModal
-          event={selectedEventForDetails}
-          isOpen={!!selectedEventForDetails}
-          onClose={() => setSelectedEventForDetails(null)}
-          isAuthenticated={isAuthenticated}
-          onRegister={() => {
-            setSelectedEventForDetails(null);
-            navigate(isAuthenticated ? "/user/events" : "/login");
-          }}
-        />
-      )}
     </div>
   );
 }

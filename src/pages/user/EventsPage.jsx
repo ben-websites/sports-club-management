@@ -30,7 +30,9 @@ function EventsPage() {
     try {
       if (isInitial) setLoading(true);
       const [eventsRes, regRes] = await Promise.all([
-        api.get("/public/events"),
+        // The workspace reads its own club only - /public/* is platform-scoped
+        // and would resolve whichever club the website happens to feature.
+        api.get("/club/events"),
         api.get("/events/my-registrations"),
       ]);
 

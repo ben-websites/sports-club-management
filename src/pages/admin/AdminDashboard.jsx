@@ -178,13 +178,13 @@ function AdminDashboard() {
         ========================================================= */}
         <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
           <StatCard
-            title="Total Users"
+            title="Total Members"
             value={stats.TotalUsers || 0}
-            label={`${stats.TotalRegisteredUsers || 0} registered user accounts`}
+            label={`${stats.TotalRegisteredUsers || 0} accounts joined this club`}
             icon={Users}
             tone="black"
             changeType="neutral"
-            change="Registered Accounts"
+            change="Paid Memberships"
           />
 
           <StatCard
@@ -370,9 +370,9 @@ function AdminDashboard() {
         ========================================================= */}
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <SummaryBox
-            label="Total Accounts"
+            label="Total Members"
             value={stats.TotalUsers || 0}
-            subtext="Registered in database"
+            subtext="With a membership in this club"
           />
           <SummaryBox
             label="Pending Applications"

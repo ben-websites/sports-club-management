@@ -60,7 +60,9 @@ function MyMembership() {
 
       // If no membership yet, fetch plans for inline selection right inside the panel
       if (!res.data?.hasMembership) {
-        const plansRes = await api.get("/public/plans");
+        // Club-scoped: /public/plans resolves the website's featured club, which
+        // is not necessarily the club this member is signed in to.
+        const plansRes = await api.get("/club/plans");
         if (plansRes.data.success) {
           const plans = plansRes.data.plans || plansRes.data.data || [];
           setAvailablePlans(plans);

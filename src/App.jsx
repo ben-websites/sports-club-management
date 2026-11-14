@@ -74,6 +74,31 @@ import CoachNotifications from "./pages/coach/CoachNotifications";
 import CoachProfile from "./pages/coach/CoachProfile";
 import CoachReports from "./pages/coach/CoachReports";
 
+// Club workspace extras
+import AdminClubProfile from "./pages/admin/AdminClubProfile";
+
+// Public website (own shell - no links into the workspace)
+import PublicSiteLayout from "./layouts/PublicSiteLayout";
+import ClubsPage from "./pages/public/ClubsPage";
+import ClubProfilePage from "./pages/public/ClubProfilePage";
+import ForClubsPage from "./pages/public/ForClubsPage";
+
+// Owner onboarding (email + password) and member identity
+import OwnerLoginPage from "./pages/auth/OwnerLoginPage";
+import SelectClubPage from "./pages/auth/SelectClubPage";
+import SellSignInPage from "./pages/sell/SellSignInPage";
+import SubscribeRequestPage from "./pages/sell/SubscribeRequestPage";
+import SubscriptionStatusPage from "./pages/sell/SubscriptionStatusPage";
+
+// Platform console (software owner)
+import PlatformLayout from "./components/platform/PlatformLayout";
+import PlatformLoginPage from "./pages/platform/PlatformLoginPage";
+import PlatformOverview from "./pages/platform/PlatformOverview";
+import PlatformRequests from "./pages/platform/PlatformRequests";
+import PlatformClubs from "./pages/platform/PlatformClubs";
+import PlatformPlans from "./pages/platform/PlatformPlans";
+import PlatformRevenue from "./pages/platform/PlatformRevenue";
+
 function AppRoutes() {
   const location = useLocation();
 
@@ -84,15 +109,51 @@ function AppRoutes() {
   return (
     <Routes>
 
-      {/* PUBLIC ROUTES */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="/services" element={<ServicesPage />} />
+      {/* ============================================================
+          PUBLIC WEBSITE
+          A separate shell with no path into any club's workspace.
+      ============================================================ */}
+      <Route element={<PublicSiteLayout />}>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/clubs" element={<ClubsPage />} />
+        <Route path="/clubs/:slug" element={<ClubProfilePage />} />
+        <Route path="/for-clubs" element={<ForClubsPage />} />
+      </Route>
+
+      {/* ============================================================
+          OWNER ONBOARDING - plain email + password
+      ============================================================ */}
+      <Route path="/owner/login" element={<OwnerLoginPage />} />
+      <Route path="/sell/login" element={<SellSignInPage />} />
+      <Route path="/sell/subscribe" element={<SubscribeRequestPage />} />
+      <Route path="/sell/status" element={<SubscriptionStatusPage />} />
+
+      {/* ============================================================
+          MEMBER / STAFF AUTH - plain email + password
+      ============================================================ */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/select-club" element={<SelectClubPage />} />
+
+      {/* ============================================================
+          PLATFORM CONSOLE - the software owner, across every club
+      ============================================================ */}
+      <Route path="/platform/login" element={<PlatformLoginPage />} />
+
+      <Route element={<ProtectedRoute platformOnly />}>
+        <Route path="/platform" element={<PlatformLayout />}>
+          <Route index element={<PlatformOverview />} />
+          <Route path="requests" element={<PlatformRequests />} />
+          <Route path="clubs" element={<PlatformClubs />} />
+          <Route path="plans" element={<PlatformPlans />} />
+          <Route path="revenue" element={<PlatformRevenue />} />
+        </Route>
+      </Route>
 
       {/* USER PROTECTED ROUTES */}
-      <Route element={<ProtectedRoute adminOnly={false} />}>
+      <Route element={<ProtectedRoute requireClub />}>
         <Route path="/user/dashboard" element={<UserOverview />} />
         <Route path="/user/membership" element={<MyMembership />} />
         <Route path="/user/sports" element={<UserSportsEnrollment />} />
@@ -111,8 +172,11 @@ function AppRoutes() {
       </Route>
 
       {/* ADMIN PROTECTED ROUTES */}
-      <Route element={<ProtectedRoute adminOnly={true} />}>
+      <Route element={<ProtectedRoute adminOnly requireClub />}>
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/club-profile" element={<AdminClubProfile />} />
+        {/* Same page under the name admins look for it by. */}
+        <Route path="/admin/profile" element={<AdminClubProfile />} />
         <Route path="/admin/users" element={<AdminUsers />} />
         <Route path="/admin/memberships" element={<AdminMemberships />} />
         <Route path="/admin/plans" element={<AdminPlans />} />
@@ -137,7 +201,7 @@ function AppRoutes() {
       </Route>
 
       {/* COACH PROTECTED ROUTES */}
-      <Route element={<ProtectedRoute coachOnly={true} />}>
+      <Route element={<ProtectedRoute coachOnly requireClub />}>
         <Route path="/coach/dashboard" element={<CoachDashboard />} />
         <Route path="/coach/attendance" element={<CoachAttendance />} />
         <Route path="/coach/tournaments" element={<CoachTournaments />} />

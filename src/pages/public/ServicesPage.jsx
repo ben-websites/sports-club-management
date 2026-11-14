@@ -1,746 +1,400 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../../services/api";
-import Reveal from "../../components/common/Reveal";
-import PublicNavbar from "../../components/public/PublicNavbar";
 import {
+  ArrowRight,
+  BadgeCheck,
+  Bell,
+  CalendarDays,
+  ClipboardCheck,
+  Coins,
+  CreditCard,
+  Dumbbell,
+  FileBarChart,
+  GraduationCap,
+  LineChart,
+  MapPin,
+  Receipt,
   ShieldCheck,
   Trophy,
   Users,
-  Award,
-  CheckCircle2,
-  ArrowRight,
-  ArrowLeft,
-  Star,
-  Activity,
-  HeartPulse,
-  Flame,
-  Zap,
-  Clock,
-  MapPin,
-  Phone,
-  Mail,
-  ArrowUp,
-  Compass,
-  Check,
-  Dumbbell,
-  Sparkles,
-  Calendar,
-  Layers,
+  Wallet,
+  Wrench,
 } from "lucide-react";
+import api from "../../services/api";
+import Reveal from "../../components/common/Reveal";
 
-export default function ServicesPage() {
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+/**
+ * What the platform actually does - grouped by who uses it.
+ *
+ * This page used to be a catalogue of one club's facilities (Olympic pool, ICC
+ * pavilion, ...) with a large hard-coded list of amenities. Facilities belong to
+ * a club, so they live on that club's page; what is genuinely platform-wide is
+ * listed here, and the counters at the bottom are read from /public/stats.
+ */
+const MEMBER_SERVICES = [
+  {
+    icon: BadgeCheck,
+    title: "Digital membership card",
+    body: "Your club, plan, membership number and status - always current, always on your phone.",
+  },
+  {
+    icon: Receipt,
+    title: "Monthly fee vouchers",
+    body: "Every voucher shows the amount, the due date and the deposit details. Download it or pay it in a few taps.",
+  },
+  {
+    icon: CreditCard,
+    title: "Receipt upload",
+    body: "Paid at the bank or by mobile transfer? Upload a photo of the slip and follow its verification status.",
+  },
+  {
+    icon: Wallet,
+    title: "Advance payments",
+    body: "Pay several months ahead and the platform records the prepaid period instead of billing you again.",
+  },
+  {
+    icon: CalendarDays,
+    title: "Training & events",
+    body: "Your sessions, schedules and the club's upcoming events and tournaments, in the same dashboard.",
+  },
+  {
+    icon: LineChart,
+    title: "Progress & history",
+    body: "Attendance, performance notes, and a complete record of every payment you have ever made.",
+  },
+];
+
+const ADMIN_SERVICES = [
+  {
+    icon: Users,
+    title: "Member approvals",
+    body: "Review applications, approve or reject them, and suspend access for a member without touching their account elsewhere.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Plans & pricing",
+    body: "Publish tiers with a monthly fee, admission fee, duration and sport allowance - the public page updates with them.",
+  },
+  {
+    icon: Receipt,
+    title: "Vouchers & fines",
+    body: "Generate monthly vouchers for the whole club and let overdue ones collect a per-day fine automatically.",
+  },
+  {
+    icon: CreditCard,
+    title: "Payments & verifications",
+    body: "Approve or reject uploaded receipts, track collected and pending amounts, and handle advance payments.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Coaches & teams",
+    body: "Add coaches with specialisations, assign members to teams, and keep tournament fixtures in order.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Attendance",
+    body: "Member and staff attendance, coach sessions and a salary register, all on one calendar.",
+  },
+  {
+    icon: Wrench,
+    title: "Equipment",
+    body: "Track club equipment, what is issued, what is out and what needs replacing.",
+  },
+  {
+    icon: FileBarChart,
+    title: "Reports & analytics",
+    body: "Revenue, dues, attendance, membership growth and payroll - exportable views for the committee.",
+  },
+];
+
+const COACH_SERVICES = [
+  {
+    icon: CalendarDays,
+    title: "Schedules",
+    body: "See the sessions you are running and the members enrolled in each one.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Attendance",
+    body: "Mark attendance on the spot instead of handing a sheet back to the front desk.",
+  },
+  {
+    icon: Trophy,
+    title: "Training groups",
+    body: "Track the members assigned to your groups, their performance notes and upcoming competitions.",
+  },
+  {
+    icon: Bell,
+    title: "Notices",
+    body: "Get the club's announcements and equipment updates where you actually look.",
+  },
+];
+
+function ServicesPage() {
+  const [stats, setStats] = useState(null);
+  const [clubs, setClubs] = useState([]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, []);
+    let alive = true;
 
-  useEffect(() => {
-    const fetchServices = async () => {
+    const load = async () => {
       try {
-        const res = await api.get("/public/services");
-        const databaseServices =
-          res.data?.success && Array.isArray(res.data.data)
-            ? res.data.data
-            : [];
+        const [statsRes, clubsRes] = await Promise.all([
+          api.get("/public/stats"),
+          api.get("/public/clubs"),
+        ]);
 
-        // Keep database records and append the new sports programs.
-        // Avoid showing a duplicate if a program already exists in the database.
-        const existingNames = new Set(
-          databaseServices
-            .map((service) => service.ServiceName?.trim().toLowerCase())
-            .filter(Boolean)
-        );
-
-        const sportsNotInDatabase = additionalSportsServices.filter(
-          (service) =>
-            !existingNames.has(service.ServiceName.trim().toLowerCase())
-        );
-
-        if (databaseServices.length > 0) {
-          setServices([...databaseServices, ...sportsNotInDatabase]);
-        } else {
-          setServices([...defaultServices, ...additionalSportsServices]);
-        }
-      } catch (err) {
-        console.error("Error loading services:", err);
-        setServices([...defaultServices, ...additionalSportsServices]);
-      } finally {
-        setLoading(false);
+        if (!alive) return;
+        if (statsRes.data.success) setStats(statsRes.data.stats || {});
+        if (clubsRes.data.success) setClubs(clubsRes.data.data || []);
+      } catch (error) {
+        console.error("Could not load the services overview:", error.message);
       }
     };
 
-    fetchServices();
+    load();
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  const defaultServices = [
-    {
-      ServiceID: 1,
-      ServiceName: "Personal Fitness Coaching",
-      Description:
-        "Certified athletic trainers delivering personalized nutrition regimens, biometric tracking, and targeted muscle conditioning.",
-      ImageURL: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1200&q=80",
-      category: "Coaching",
-      hours: "06:00 AM - 10:00 PM Daily",
-      trainer: "Coach Marcus Vance (CSCS)",
-      features: [
-        "InBody 770 Body Composition Analysis",
-        "Individualized Microcycle Training Programs",
-        "Targeted Athletic Conditioning & Speed Work",
-        "Monthly Biometric Re-Evaluation",
-      ],
-      plansIncluded: ["Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 2,
-      ServiceName: "Junior & Adult Sports Academies",
-      Description:
-        "Professional coaching clinics in cricket, tennis, swimming, and badminton led by former national athletes.",
-      ImageURL: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
-      category: "Academy",
-      hours: "04:00 PM - 08:30 PM (Mon - Sat)",
-      trainer: "Tariq Mehmood & Elena Rostova",
-      features: [
-        "Age-Bracketed Training (Under 14, U-19, Adult)",
-        "Automated Speed Gun Pitch Telemetry",
-        "High-Speed Stroke Video Analysis",
-        "Official Club Ranking Ladder Tournaments",
-      ],
-      plansIncluded: ["Silver Tier", "Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 3,
-      ServiceName: "Executive Steam, Sauna & Recovery",
-      Description:
-        "Therapeutic infrared saunas, eucalyptus steam baths, cold plunge recovery tubs, and sports massage therapy rooms.",
-      ImageURL: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1200&q=80",
-      category: "Wellness",
-      hours: "07:00 AM - 11:00 PM Daily",
-      trainer: "Sports Physio & Spa Team",
-      features: [
-        "Contrast Hydrotherapy (Cold Plunge & Hot Spa)",
-        "Finnish Dry Cedar Sauna & Eucalyptus Mist",
-        "Percussive Massage & Cryo Recovery Booths",
-        "Post-Workout Muscle Relaxation Protocol",
-      ],
-      plansIncluded: ["Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 4,
-      ServiceName: "High-Protein Member Cafeteria & Lounge",
-      Description:
-        "Chef-prepared nutrition bowls, organic fruit smoothies, whey protein shakes, and a comfortable member co-working lounge.",
-      ImageURL: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&w=1200&q=80",
-      category: "Nutrition",
-      hours: "06:30 AM - 11:30 PM Daily",
-      trainer: "Executive Chef & Sports Nutritionist",
-      features: [
-        "Calorie & Macro Counted Gourmet Meals",
-        "Cold-Pressed Raw Juices & Electrolyte Bar",
-        "High-Speed Wi-Fi Workstations & Athletic Lounge",
-        "Member Priority Seating & Pre-Order via Portal",
-      ],
-      plansIncluded: ["All Active Members"],
-    },
+  const counters = [
+    { value: stats?.TotalClubs ?? 0, label: "Clubs live", icon: ShieldCheck },
+    { value: stats?.SportCount ?? 0, label: "Sports offered", icon: Dumbbell },
+    { value: stats?.TotalServices ?? 0, label: "Club services listed", icon: Wrench },
+    { value: stats?.PlanCount ?? 0, label: "Membership plans", icon: Coins },
   ];
-
-
-  // Additional sports and skill-development programs.
-  // These are merged with database services without replacing database records.
-  const additionalSportsServices = [
-    {
-      ServiceID: 101,
-      ServiceName: "Karate Training Academy",
-      Description: "Learn traditional Karate through structured training in discipline, striking techniques, balance, self-control and practical self-defense.",
-      ImageURL: "https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=1200&q=80",
-      category: "Martial Arts",
-      hours: "04:00 PM - 08:00 PM (Mon - Sat)",
-      trainer: "Karate Instructor",
-      features: ["Beginner to Advanced Training", "Kata and Kumite Practice", "Belt Grading Preparation", "Self-Defense Techniques"],
-      plansIncluded: ["Silver Tier", "Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 102,
-      ServiceName: "Taekwondo Classes",
-      Description: "Develop flexibility, speed, coordination and confidence through traditional Taekwondo training and controlled sparring.",
-      ImageURL: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?auto=format&fit=crop&w=1200&q=80",
-      category: "Martial Arts",
-      hours: "04:00 PM - 08:00 PM (Mon - Sat)",
-      trainer: "Taekwondo Instructor",
-      features: ["Kicking Techniques", "Forms and Patterns", "Controlled Sparring", "Belt Advancement Training"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 103,
-      ServiceName: "Professional Boxing Training",
-      Description: "Build punching technique, endurance, defensive movement and ring confidence with structured boxing sessions.",
-      ImageURL: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?auto=format&fit=crop&w=1200&q=80",
-      category: "Combat Sports",
-      hours: "06:00 AM - 09:00 PM Daily",
-      trainer: "Boxing Coach",
-      features: ["Boxing Fundamentals", "Punching Bag Workouts", "Footwork and Defense", "Fitness and Conditioning"],
-      plansIncluded: ["Silver Tier", "Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 104,
-      ServiceName: "Mixed Martial Arts (MMA)",
-      Description: "Combine striking, grappling, wrestling and ground techniques in a progressive mixed martial arts training program.",
-      ImageURL: "https://images.unsplash.com/photo-1517438322307-e67111335449?auto=format&fit=crop&w=1200&q=80",
-      category: "Combat Sports",
-      hours: "05:00 PM - 09:00 PM (Mon - Sat)",
-      trainer: "MMA Coach",
-      features: ["Striking Fundamentals", "Grappling Techniques", "Ground Defense", "Supervised Practice Sessions"],
-      plansIncluded: ["Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 105,
-      ServiceName: "Judo Training Program",
-      Description: "Master balance, throws, movement and grappling through traditional Judo instruction.",
-      ImageURL: "https://images.unsplash.com/photo-1564415051543-cb73a7465d9b?auto=format&fit=crop&w=1200&q=80",
-      category: "Martial Arts",
-      hours: "04:00 PM - 08:00 PM (Mon - Fri)",
-      trainer: "Judo Instructor",
-      features: ["Throwing Techniques", "Balance and Movement", "Ground Grappling", "Competition Preparation"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 106,
-      ServiceName: "Wrestling Academy",
-      Description: "Improve strength, agility and grappling ability through freestyle wrestling drills and supervised training.",
-      ImageURL: "https://images.unsplash.com/photo-1517963879433-6ad2b056d712?auto=format&fit=crop&w=1200&q=80",
-      category: "Combat Sports",
-      hours: "05:00 PM - 08:00 PM (Mon - Sat)",
-      trainer: "Wrestling Coach",
-      features: ["Freestyle Wrestling Basics", "Takedown Techniques", "Strength and Agility Drills", "Match Preparation"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 107,
-      ServiceName: "Kickboxing Classes",
-      Description: "Combine boxing punches and martial arts kicks to improve cardiovascular fitness, coordination and combat skills.",
-      ImageURL: "https://images.unsplash.com/photo-1599058918144-1ffabb6ab9a0?auto=format&fit=crop&w=1200&q=80",
-      category: "Combat Sports",
-      hours: "06:00 PM - 09:00 PM Daily",
-      trainer: "Kickboxing Coach",
-      features: ["Punch and Kick Combinations", "Pad Training", "Defensive Movement", "Endurance Conditioning"],
-      plansIncluded: ["Silver Tier", "Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 108,
-      ServiceName: "Practical Self-Defense Classes",
-      Description: "Practical self-defense classes focused on awareness, confidence, personal safety and basic defensive techniques.",
-      ImageURL: "https://images.unsplash.com/photo-1591117207239-788bf8de6c3b?auto=format&fit=crop&w=1200&q=80",
-      category: "Martial Arts",
-      hours: "05:00 PM - 08:00 PM (Mon - Sat)",
-      trainer: "Self-Defense Instructor",
-      features: ["Situational Awareness", "Defensive Movement", "Escape Techniques", "Confidence Building"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 109,
-      ServiceName: "Basketball Coaching Academy",
-      Description: "Develop basketball fundamentals through professional drills, team play, shooting practice and match preparation.",
-      ImageURL: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1200&q=80",
-      category: "Team Sports",
-      hours: "04:00 PM - 09:00 PM Daily",
-      trainer: "Basketball Coach",
-      features: ["Dribbling and Ball Control", "Shooting Techniques", "Defensive Strategies", "Team Match Practice"],
-      plansIncluded: ["Silver Tier", "Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 110,
-      ServiceName: "Football Skills Academy",
-      Description: "Improve football technique, passing, shooting, positioning and teamwork with structured field training.",
-      ImageURL: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=1200&q=80",
-      category: "Team Sports",
-      hours: "04:00 PM - 08:00 PM (Mon - Sat)",
-      trainer: "Football Coach",
-      features: ["Ball Control and Dribbling", "Passing and Shooting", "Team Tactics", "Fitness and Match Practice"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 111,
-      ServiceName: "Volleyball Training Academy",
-      Description: "Build teamwork, coordination and athletic ability through volleyball drills and competitive practice.",
-      ImageURL: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1200&q=80",
-      category: "Team Sports",
-      hours: "04:00 PM - 08:00 PM (Mon - Sat)",
-      trainer: "Volleyball Coach",
-      features: ["Serving and Receiving", "Setting and Spiking", "Blocking Techniques", "Team Match Practice"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 112,
-      ServiceName: "Advanced Badminton Coaching",
-      Description: "Enhance racket control, court movement, footwork and competitive badminton performance.",
-      ImageURL: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&w=1200&q=80",
-      category: "Racket Sports",
-      hours: "06:00 AM - 10:00 PM Daily",
-      trainer: "Badminton Coach",
-      features: ["Footwork and Agility", "Smash and Drop Shots", "Singles and Doubles Strategy", "Tournament Preparation"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 113,
-      ServiceName: "Professional Tennis Coaching",
-      Description: "Learn tennis fundamentals and advanced match techniques with dedicated court coaching.",
-      ImageURL: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=1200&q=80",
-      category: "Racket Sports",
-      hours: "06:00 AM - 09:00 PM Daily",
-      trainer: "Tennis Coach",
-      features: ["Forehand and Backhand", "Serving Practice", "Court Positioning", "Singles and Doubles Training"],
-      plansIncluded: ["Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 114,
-      ServiceName: "Table Tennis Academy",
-      Description: "Improve reflexes, hand-eye coordination, spin control and match strategy through table tennis coaching.",
-      ImageURL: "https://images.unsplash.com/photo-1534158914592-062992fbe900?auto=format&fit=crop&w=1200&q=80",
-      category: "Racket Sports",
-      hours: "03:00 PM - 10:00 PM Daily",
-      trainer: "Table Tennis Coach",
-      features: ["Serving and Spin Control", "Forehand and Backhand", "Fast Reaction Drills", "Competitive Match Practice"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 115,
-      ServiceName: "Swimming Skills Academy",
-      Description: "Structured swimming instruction for beginners and advanced swimmers, focusing on water confidence and stroke development.",
-      ImageURL: "https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=1200&q=80",
-      category: "Aquatics",
-      hours: "06:00 AM - 09:00 PM Daily",
-      trainer: "Swimming Instructor",
-      features: ["Beginner Swimming Lessons", "Freestyle and Backstroke", "Breathing Techniques", "Water Safety Skills"],
-      plansIncluded: ["Silver Tier", "Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 116,
-      ServiceName: "Athletics and Track Training",
-      Description: "Develop speed, stamina and athletic performance through running, sprinting and track conditioning programs.",
-      ImageURL: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=1200&q=80",
-      category: "Athletics",
-      hours: "06:00 AM - 09:00 AM / 04:00 PM - 07:00 PM",
-      trainer: "Athletics Coach",
-      features: ["Sprint Training", "Distance Running", "Speed and Agility", "Performance Assessment"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 117,
-      ServiceName: "Yoga and Flexibility Classes",
-      Description: "Improve mobility, posture, flexibility and mental focus through guided yoga sessions.",
-      ImageURL: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80",
-      category: "Mind & Body",
-      hours: "06:00 AM - 09:00 AM / 05:00 PM - 08:00 PM",
-      trainer: "Yoga Instructor",
-      features: ["Guided Yoga Sessions", "Breathing Exercises", "Mobility and Stretching", "Balance and Posture"],
-      plansIncluded: ["Silver Tier", "Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 118,
-      ServiceName: "Zumba Dance Fitness",
-      Description: "Enjoy energetic group dance workouts designed to improve stamina, coordination and cardiovascular fitness.",
-      ImageURL: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
-      category: "Fitness",
-      hours: "05:00 PM - 08:00 PM Daily",
-      trainer: "Group Fitness Instructor",
-      features: ["Dance-Based Workouts", "Group Fitness Sessions", "Cardio Conditioning", "All Fitness Levels"],
-      plansIncluded: ["Silver Tier", "Gold Tier"],
-    },
-    {
-      ServiceID: 119,
-      ServiceName: "CrossFit and Functional Fitness",
-      Description: "Build all-round athletic ability with functional movements, strength circuits and coached conditioning workouts.",
-      ImageURL: "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=1200&q=80",
-      category: "Fitness",
-      hours: "06:00 AM - 10:00 PM Daily",
-      trainer: "Functional Fitness Coach",
-      features: ["Functional Movement Training", "Strength Circuits", "Cardio Conditioning", "Scalable Workout Levels"],
-      plansIncluded: ["Gold Tier", "Platinum Tier"],
-    },
-    {
-      ServiceID: 120,
-      ServiceName: "Pilates and Core Conditioning",
-      Description: "Strengthen core muscles, improve posture and develop controlled movement through instructor-led Pilates sessions.",
-      ImageURL: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=80",
-      category: "Mind & Body",
-      hours: "07:00 AM - 09:00 AM / 05:00 PM - 08:00 PM",
-      trainer: "Pilates Instructor",
-      features: ["Core Strengthening", "Controlled Movement", "Posture Improvement", "Flexibility and Balance"],
-      plansIncluded: ["Gold Tier", "Platinum Tier"],
-    },
-  ];
-
-  // Additional Special Amenities
-  const specializedAmenities = [
-    {
-      icon: Activity,
-      title: "Sports Physiotherapy & Injury Clinic",
-      desc: "Licensed physiotherapists offering rapid musculoskeletal rehabilitation, dry needling, kinematic gait analysis, and sports taping.",
-    },
-    {
-      icon: Trophy,
-      title: "Pitch & Court Arena Private Bookings",
-      desc: "Reserve full cricket turf pavilions or synthetic tennis courts with competition lighting for corporate tournaments and private matches.",
-    },
-    {
-      icon: Dumbbell,
-      title: "Olympic Powerlifting & CrossFit Rig",
-      desc: "Eleiko calibrated Olympic bumper plates, heavy-duty power racks, Texas power bars, and shock-absorbent drop platforms.",
-    },
-    {
-      icon: Sparkles,
-      title: "Pro Equipment Shop & Racket Restringing",
-      desc: "Official club gear shop featuring Babolat and Wilson racket restringing, cricket bat knocking, and high-performance athletic apparel.",
-    },
-  ];
-
-  const categories = [
-    "All",
-    ...new Set(
-      services
-        .map((service) => service.category || "Other")
-        .filter(Boolean)
-    ),
-  ];
-
-  const filteredServices =
-    selectedCategory === "All"
-      ? services
-      : services.filter(
-          (s) =>
-            s.category?.toLowerCase() === selectedCategory.toLowerCase() ||
-            s.ServiceName?.toLowerCase().includes(selectedCategory.toLowerCase())
-        );
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   return (
-    <div className="page-enter min-h-screen overflow-x-clip bg-[#0c0c0e] font-sans text-zinc-100">
-      {/* SHARED PUBLIC NAVBAR (identical on landing / about / services) */}
-      <PublicNavbar />
+    <div className="page-enter bg-[#0c0c0e] font-sans text-zinc-100">
+      {/* HERO */}
+      <section className="relative overflow-hidden border-b border-zinc-800 py-20 sm:py-24">
+        <div className="pointer-events-none absolute -right-28 top-0 h-[440px] w-[440px] rounded-full bg-orange-500/10 blur-[140px]" />
 
-
-      {/* =========================================================
-          HERO BANNER
-      ========================================================= */}
-      <section className="keep-dark relative min-h-[520px] pt-44 pb-20 lg:pt-36 overflow-hidden bg-[#09090b] border-b border-zinc-800">
-        {/* HERO BACKGROUND IMAGE */}
-        <img
-          src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=2200&q=90"
-          alt="Sports Hub Services & Performance"
-          className="absolute inset-0 h-full w-full object-cover opacity-60"
-        />
-
-        {/* OVERLAYS (Black & Orange transitions) */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/65 to-black/35" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-black/20 to-black/60" />
-        <div className="absolute top-1/4 right-10 h-96 w-96 rounded-full bg-orange-500/15 blur-[120px] pointer-events-none animate-heroGlow" />
-
-        <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <Reveal variant="left" className="flex flex-col items-start gap-4">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-orange-500 transition"
-            >
-              <ArrowLeft size={14} /> Back to Website
-            </Link>
-
-            <div className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.25em] text-orange-500">
+        <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <Reveal>
+            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
-              Specialized Club Services
+              Services
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.08] max-w-4xl">
-              Specialized Services.{" "}
-              <span className="text-orange-500 font-normal">Beyond Traditional Gyms.</span>
+            <h1 className="mt-6 max-w-4xl text-[36px] font-black leading-[1.08] tracking-tight text-white sm:text-[52px]">
+              Everything a club runs on.
+              <span className="block font-normal text-orange-500">In one workspace.</span>
             </h1>
 
-            <p className="mt-4 text-base sm:text-lg text-zinc-300 leading-relaxed max-w-3xl">
-              At Sports Hub, your membership unlocks institutional amenities engineered for athletic recovery, competitive technical coaching, and peak metabolic conditioning.
+            <p className="mt-6 max-w-2xl text-[14px] leading-7 text-zinc-400 sm:text-[15px]">
+              Members get their dues, receipts and card. Admins get approvals, vouchers,
+              coaching, attendance and reports. Coaches get their sessions. The facilities
+              themselves - the pool, the courts, the gym - are listed on each club's own
+              page, because they belong to that club.
             </p>
-          </Reveal>
 
-          {/* CATEGORY FILTER TABS */}
-          <Reveal group className="mt-12 flex flex-wrap gap-2 border-b border-zinc-800 pb-4">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider transition ${
-                  selectedCategory === cat
-                    ? "bg-orange-500 text-black shadow-lg"
-                    : "border border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-orange-500 hover:text-white"
-                }`}
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link
+                to="/clubs"
+                className="inline-flex items-center gap-3 bg-orange-500 px-7 py-4 text-xs font-black uppercase tracking-wider text-black transition-all hover:bg-white"
               >
-                {cat}
-              </button>
-            ))}
+                Browse clubs
+                <ArrowRight size={16} />
+              </Link>
+
+              <Link
+                to="/for-clubs"
+                className="inline-flex items-center gap-3 border border-zinc-700 px-7 py-4 text-xs font-bold uppercase tracking-wider text-white transition hover:border-orange-500 hover:text-orange-400"
+              >
+                Software plans
+              </Link>
+            </div>
           </Reveal>
         </div>
       </section>
 
-      {/* =========================================================
-          DETAILED SERVICES SHOWCASE (USER REQUESTED FEATURE)
-      ========================================================= */}
-      <section className="py-24 bg-[#09090b]">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="grid gap-8 md:grid-cols-2">
-            {filteredServices.map((svc) => (
-              <Reveal
-                key={svc.ServiceID || svc.ServiceName}
-                variant="up"
-                className="flex h-full flex-col border border-zinc-800 bg-[#121215] transition duration-300 hover:-translate-y-1 hover:border-orange-500/50 hover:shadow-[0_20px_50px_-26px_rgba(249,115,22,0.55)]"
-              >
-                {/* IMAGE */}
-                <div className="relative overflow-hidden border-b border-zinc-800">
-                  <img
-                    src={svc.ImageURL}
-                    alt={svc.ServiceName}
-                    className="h-52 w-full object-cover transition duration-700 hover:scale-105 sm:h-60"
-                  />
-                  <div className="absolute top-4 left-4 bg-orange-500 px-3 py-1 text-[10px] font-black uppercase text-black">
-                    {svc.category || "Club Service"}
-                  </div>
-                </div>
-
-                {/* CONTENT */}
-                <div className="flex flex-1 flex-col p-6 sm:p-7">
-                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-orange-400">
-                    <Clock size={13} className="text-orange-500 shrink-0" />
-                    {svc.hours || "Full Club Operating Hours"}
-                  </div>
-
-                  <h2 className="mt-2 text-xl sm:text-2xl font-black text-white">
-                    {svc.ServiceName}
-                  </h2>
-
-                  <p className="mt-3 text-sm text-zinc-300 leading-relaxed">
-                    {svc.Description}
-                  </p>
-
-                  {svc.trainer && (
-                    <div className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
-                      <span className="font-bold text-white">Lead Instructor:</span>
-                      <span className="text-orange-400 font-semibold">{svc.trainer}</span>
-                    </div>
-                  )}
-
-                  {/* FEATURES CHECKLIST */}
-                  {svc.features && svc.features.length > 0 && (
-                    <div className="mt-5 space-y-2 border-t border-zinc-800 pt-4">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                        Included Program Features
-                      </div>
-                      {svc.features.map((feat) => (
-                        <div key={feat} className="flex items-start gap-2.5 text-xs text-zinc-300">
-                          <Check size={14} className="text-orange-500 shrink-0 mt-0.5" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* TIER BADGES */}
-                  {svc.plansIncluded && (
-                    <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-zinc-800/80 pt-4">
-                      <span className="text-[10px] uppercase font-bold text-zinc-500 mr-1">
-                        Included In:
-                      </span>
-                      {svc.plansIncluded.map((plan) => (
-                        <span
-                          key={plan}
-                          className="bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2.5 py-0.5 text-[10px] font-bold"
-                        >
-                          {plan}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* ACTIONS */}
-                  <div className="mt-auto flex flex-wrap gap-3 pt-6">
-                    <Link
-                      to="/#plans"
-                      className="inline-flex items-center gap-2 rounded-none bg-orange-500 px-5 py-2.5 text-[11px] font-black uppercase text-black hover:bg-white transition"
-                    >
-                      Enroll with Membership
-                      <ArrowRight size={13} />
-                    </Link>
-                    <Link
-                      to="/about"
-                      className="inline-flex items-center gap-2 rounded-none border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-[11px] font-bold text-zinc-300 hover:text-white hover:border-zinc-500 transition"
-                    >
-                      Meet Coaches
-                    </Link>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================
-          SPECIALIZED AMENITIES GRID
-      ========================================================= */}
-      <section className="py-24 bg-[#121216] border-t border-zinc-800">
+      {/* FOR MEMBERS */}
+      <section className="border-b border-zinc-800 py-24">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
           <Reveal className="max-w-2xl">
             <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
               <span className="h-px w-8 bg-orange-500" />
-              Specialist Infrastructure
+              For Members
             </div>
 
-            <h2 className="mt-4 text-3xl sm:text-5xl font-black text-white leading-tight">
-              Additional Elite Amenities
+            <h2 className="mt-5 text-[32px] font-black leading-tight text-white sm:text-[42px]">
+              Your membership,
+              <span className="block font-normal text-orange-500">without the paperwork.</span>
             </h2>
-
-            <p className="mt-3 text-sm text-zinc-400">
-              Every facility at Sports Hub is maintained to international athletic specifications.
-            </p>
           </Reveal>
 
-          <Reveal group className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {specializedAmenities.map((amenity) => {
-              const Icon = amenity.icon;
-              return (
-                <div
-                  key={amenity.title}
-                  className="border border-zinc-800 bg-[#0c0c0e] p-7 transition hover:border-orange-500/60 hover:bg-zinc-900/40"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center bg-orange-500/10 border border-orange-500/30 text-orange-500">
-                    <Icon size={22} />
-                  </div>
-                  <h3 className="mt-5 text-base font-black text-white">{amenity.title}</h3>
-                  <p className="mt-2 text-xs leading-5 text-zinc-400">{amenity.desc}</p>
-                </div>
-              );
-            })}
-          </Reveal>
-        </div>
-      </section>
-
-      {/* =========================================================
-          CTA SECTION
-      ========================================================= */}
-      <section className="py-20 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 text-black">
-        <Reveal variant="fade" className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div>
-            <div className="text-xs font-black uppercase tracking-widest text-black/80">
-              Full Member Privileges
-            </div>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-black leading-tight text-black">
-              Access All Services Through Your Membership
-            </h2>
-            <p className="mt-2 text-sm text-black/80 max-w-xl">
-              Choose your membership tier to activate full privileges, automated deposit vouchers, and tournament bookings today.
-            </p>
-          </div>
-
-          <Link
-            to="/#plans"
-            className="keep-dark rounded-none bg-black px-8 py-4 text-xs font-black uppercase tracking-wider text-white transition hover:bg-white hover:text-black shadow-xl"
-          >
-            Buy Membership Tier
-          </Link>
-        </Reveal>
-      </section>
-
-      {/* =========================================================
-          FOOTER
-      ========================================================= */}
-      <footer className="bg-[#08080a] text-zinc-400 border-t border-zinc-800">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6 lg:px-8">
-          <div className="grid gap-12 border-b border-zinc-800 pb-14 md:grid-cols-12">
-            <div className="md:col-span-5">
-              <Link to="/" className="flex items-center gap-3">
-                <div className="flex h-12 w-[86px] items-center justify-center overflow-hidden rounded-lg border border-orange-500/40 bg-zinc-900 px-1.5">
-                  <img
-                    src="/sports-hub-logo.svg"
-                    alt="Sports Hub Logo"
-                    className="h-7 w-auto object-contain"
-                  />
-                </div>
-                <div className="text-left">
-                  <div className="text-xl font-black text-white">
-                    SPORTS <span className="text-orange-500">HUB</span>
-                  </div>
-                  <div className="mt-0.5 text-[8.5px] uppercase tracking-[0.22em] text-zinc-400">
-                    Club Management System
-                  </div>
-                </div>
-              </Link>
-              <p className="mt-5 max-w-md text-xs leading-6 text-zinc-400">
-                Sports Hub is an elite athletic institution offering Olympic swimming, cricket arenas, synthetic tennis courts, coaching academies, and relational fee management.
-              </p>
-              <div className="mt-6 space-y-2 text-xs text-zinc-400">
-                <div>📍 Main Club Boulevard, Sports Enclave</div>
-                <div>📞 +92 300 1234567</div>
-                <div>✉️ info@sportshub.com</div>
-              </div>
-            </div>
-
-            <div className="md:col-span-2">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                Quick Navigation
-              </h3>
-              <div className="mt-5 space-y-2.5 text-xs">
-                <Link to="/" className="block text-zinc-400 hover:text-white">Home</Link>
-                <Link to="/about" className="block text-zinc-400 hover:text-white">About Us</Link>
-                <Link to="/services" className="block text-orange-500 font-bold">Services</Link>
-                <Link to="/#sports" className="block text-zinc-400 hover:text-white">Sports Arenas</Link>
-                <Link to="/#plans" className="block text-zinc-400 hover:text-white">Memberships</Link>
-              </div>
-            </div>
-
-            <div className="md:col-span-2">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                Portals
-              </h3>
-              <div className="mt-5 space-y-2.5 text-xs">
-                <Link to="/user/dashboard" className="block text-zinc-400 hover:text-white">Member Portal</Link>
-                <Link to="/admin/dashboard" className="block text-zinc-400 hover:text-white">Admin Portal</Link>
-                <Link to="/user/vouchers" className="block text-zinc-400 hover:text-white">Fee Vouchers</Link>
-                <Link to="/user/events" className="block text-zinc-400 hover:text-white">Tournaments</Link>
-              </div>
-            </div>
-
-            <div className="md:col-span-3">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
-                Member Access
-              </h3>
-              <p className="mt-4 text-xs leading-6 text-zinc-400">
-                Experience full transparency with automated vouchers, receipts, and tournament registrations.
-              </p>
-              <Link
-                to="/register"
-                className="mt-5 inline-flex items-center gap-2 bg-orange-500 px-5 py-3 text-xs font-black uppercase text-black hover:bg-white transition"
+          <Reveal group className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {MEMBER_SERVICES.map((service) => (
+              <div
+                key={service.title}
+                className="group border border-zinc-800 bg-[#0e0e11] p-6 transition hover:border-orange-500/60"
               >
-                Sign Up Now
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-between gap-4 pt-7 text-[10px] sm:flex-row">
-            <p className="text-zinc-500">
-              © {new Date().getFullYear()} Sports Hub Management System. All rights reserved.
-            </p>
-            <button
-              onClick={scrollToTop}
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-orange-500 transition"
-            >
-              Back to top
-              <ArrowUp size={13} />
-            </button>
-          </div>
+                <div className="flex h-11 w-11 items-center justify-center border border-zinc-700 bg-zinc-900 transition group-hover:border-orange-500 group-hover:bg-orange-500">
+                  <service.icon size={19} className="text-orange-500 group-hover:text-black" />
+                </div>
+                <h3 className="mt-5 text-[15px] font-black text-white">{service.title}</h3>
+                <p className="mt-2 text-[12px] leading-6 text-zinc-400">{service.body}</p>
+              </div>
+            ))}
+          </Reveal>
         </div>
-      </footer>
+      </section>
+
+      {/* FOR ADMINS */}
+      <section className="border-b border-zinc-800 bg-[#09090b] py-24">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
+                <span className="h-px w-8 bg-orange-500" />
+                For Club Admins
+              </div>
+
+              <h2 className="mt-5 text-[32px] font-black leading-tight text-white sm:text-[42px]">
+                The whole back office,
+                <span className="block font-normal text-orange-500">inside one login.</span>
+              </h2>
+            </div>
+
+            <p className="max-w-md text-[13px] leading-7 text-zinc-400">
+              Every admin sees only their own club: members who hold a membership there,
+              that club's vouchers, that club's money.
+            </p>
+          </Reveal>
+
+          <Reveal group className="mt-12 grid border-l border-t border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+            {ADMIN_SERVICES.map((service) => (
+              <div
+                key={service.title}
+                className="group border-b border-r border-zinc-800 p-6 transition hover:border-orange-500/40 hover:bg-orange-500/5"
+              >
+                <service.icon size={19} className="text-orange-500" />
+                <h3 className="mt-5 text-[14px] font-black text-white">{service.title}</h3>
+                <p className="mt-2 text-[11.5px] leading-6 text-zinc-400">{service.body}</p>
+              </div>
+            ))}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* FOR COACHES */}
+      <section className="border-b border-zinc-800 py-24">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <Reveal className="max-w-2xl">
+            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500">
+              <span className="h-px w-8 bg-orange-500" />
+              For Coaches
+            </div>
+
+            <h2 className="mt-5 text-[32px] font-black leading-tight text-white sm:text-[42px]">
+              Coaching tools, not
+              <span className="block font-normal text-orange-500">admin clutter.</span>
+            </h2>
+          </Reveal>
+
+          <Reveal group className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {COACH_SERVICES.map((service) => (
+              <div key={service.title} className="border border-zinc-800 bg-[#0e0e11] p-6">
+                <service.icon size={19} className="text-orange-500" />
+                <h3 className="mt-5 text-[14px] font-black text-white">{service.title}</h3>
+                <p className="mt-2 text-[11.5px] leading-6 text-zinc-400">{service.body}</p>
+              </div>
+            ))}
+          </Reveal>
+        </div>
+      </section>
+
+      {/* LIVE NUMBERS */}
+      <section className="border-b border-zinc-800 bg-[#09090b] py-20">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <Reveal className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+            <h2 className="text-[11px] font-black uppercase tracking-[0.18em] text-orange-500">
+              What is live on the platform right now
+            </h2>
+            <p className="text-[11px] text-zinc-500">
+              Counted from the clubs that have been approved and are accepting members.
+            </p>
+          </Reveal>
+
+          <Reveal group className="mt-8 grid border-l border-t border-zinc-800 sm:grid-cols-2 lg:grid-cols-4">
+            {counters.map((counter) => (
+              <div key={counter.label} className="border-b border-r border-zinc-800 p-6">
+                <counter.icon size={18} className="text-orange-500" />
+                <div className="mt-5 text-3xl font-black text-white">
+                  {Number(counter.value).toLocaleString()}
+                </div>
+                <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                  {counter.label}
+                </div>
+              </div>
+            ))}
+          </Reveal>
+
+          {clubs.length > 0 && (
+            <Reveal className="mt-10">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+                Facilities and services by club
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2.5">
+                {clubs.map((club) => (
+                  <Link
+                    key={club.ClubID || club.Slug}
+                    to={`/clubs/${club.Slug}`}
+                    className="inline-flex items-center gap-2 border border-zinc-800 bg-[#0e0e11] px-4 py-2.5 text-[12px] font-semibold text-zinc-300 transition hover:border-orange-500 hover:text-white"
+                  >
+                    <MapPin size={13} className="text-orange-500" />
+                    {club.ClubName}
+                    <span className="text-[10px] text-zinc-500">
+                      {club.SportCount || 0} sport{Number(club.SportCount) === 1 ? "" : "s"}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </Reveal>
+          )}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="relative overflow-hidden py-24">
+        <div className="pointer-events-none absolute left-0 top-0 h-[420px] w-[420px] rounded-full bg-orange-500/10 blur-[130px]" />
+
+        <div className="relative mx-auto flex max-w-7xl flex-col justify-between gap-10 px-5 sm:px-6 lg:flex-row lg:items-center lg:px-8">
+          <Reveal variant="left" className="max-w-2xl">
+            <h2 className="text-[32px] font-black leading-tight text-white sm:text-[44px]">
+              Pick a club and see
+              <span className="block font-normal text-orange-500">what it offers.</span>
+            </h2>
+
+            <p className="mt-5 max-w-xl text-[14px] leading-7 text-zinc-400">
+              Each club page lists its facilities, coaches, upcoming events and the exact
+              membership plans you can apply for.
+            </p>
+          </Reveal>
+
+          <Reveal variant="right" delay={120} className="flex flex-wrap gap-3">
+            <Link
+              to="/clubs"
+              className="inline-flex items-center gap-3 bg-orange-500 px-8 py-4 text-xs font-black uppercase tracking-wider text-black transition-all hover:bg-white"
+            >
+              Find a club
+              <ArrowRight size={16} />
+            </Link>
+
+            <Link
+              to="/about"
+              className="inline-flex items-center gap-3 border border-zinc-700 px-8 py-4 text-xs font-black uppercase tracking-wider text-white transition hover:border-orange-500 hover:text-orange-400"
+            >
+              About the platform
+            </Link>
+          </Reveal>
+        </div>
+      </section>
     </div>
   );
 }
+
+export default ServicesPage;

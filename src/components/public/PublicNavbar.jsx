@@ -6,23 +6,27 @@ import ThemeToggle from "../common/ThemeToggle";
 
 /**
  * Shared public website navbar.
- * Used by the landing page, the About page and the Services page so all three
- * stay pixel-identical. The header is wrapped in `keep-dark`, which means the
- * light/dark theme switch never restyles it - it always looks the way it does
- * in the original (dark) design.
+ *
+ * Four destinations only - the club directory, the software offer, what the
+ * platform does, and who we are. Everything else the old navbar carried
+ * (Membership Plans, FAQ, portal links, a separate owner button) is either an
+ * in-page section or reachable from one of these four pages, so the header no
+ * longer competes with itself for attention.
+ *
+ * The header is wrapped in `keep-dark`, which means the light/dark theme switch
+ * never restyles it - it always looks the way it does in the original (dark)
+ * design.
  */
 const NAV_LINKS = [
   { name: "Home", to: "/" },
-  { name: "About Us", to: "/about" },
+  { name: "Clubs", to: "/clubs" },
+  { name: "For Clubs", to: "/for-clubs" },
   { name: "Services", to: "/services" },
-  { name: "Sports Arenas", to: "/#sports" },
-  { name: "Membership Plans", to: "/#plans" },
-  { name: "Tournaments", to: "/#events" },
-  { name: "FAQ", to: "/#faq" },
+  { name: "About", to: "/about" },
 ];
 
 function PublicNavbar() {
-  const { isAuthenticated, role, logout } = useAuth();
+  const { isAuthenticated, role, logout, activeClub } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,7 +45,7 @@ function PublicNavbar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname, location.search]);
 
-  // Scroll to in-page sections after navigating with a hash (e.g. /#plans)
+  // Scroll to in-page sections after navigating with a hash (e.g. /for-clubs#pricing)
   useEffect(() => {
     if (!location.hash) return undefined;
     const id = location.hash.replace("#", "");
@@ -67,7 +71,17 @@ function PublicNavbar() {
     if (!hash) window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const dashboardPath = role === "admin" ? "/admin/dashboard" : "/user/dashboard";
+  const isActive = (to) => {
+    const path = to.split("#")[0] || "/";
+    if (path === "/") return location.pathname === "/";
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
+  const dashboardPath =
+    role === "admin" ? "/admin/dashboard" : role === "coach" ? "/coach/dashboard" : "/user/dashboard";
+  const portalLabel =
+    role === "admin" ? "Admin Panel" : role === "coach" ? "Coach Portal" : "My Dashboard";
+  const portalName = activeClub?.name ? activeClub.name : portalLabel;
 
   return (
     <>
@@ -121,16 +135,22 @@ function PublicNavbar() {
           </Link>
 
           {/* DESKTOP NAV */}
-          <nav className="hidden items-center gap-7 lg:flex">
+          <nav className="hidden items-center gap-9 lg:flex">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.name}
                 to={link.to}
                 onClick={(event) => handleNav(event, link.to)}
-                className={`relative text-[13px] font-semibold transition-colors ${
-                  isScrolled
-                    ? "text-[#27272a] hover:text-orange-600"
-                    : "text-white/90 hover:text-orange-400"
+                className={`relative text-[13px] font-semibold transition-colors after:absolute after:-bottom-2 after:left-0 after:h-[2px] after:bg-orange-500 after:transition-all after:duration-300 ${
+                  isActive(link.to) ? "after:w-full" : "after:w-0 hover:after:w-full"
+                } ${
+                  isActive(link.to)
+                    ? isScrolled
+                      ? "text-orange-600"
+                      : "text-white"
+                    : isScrolled
+                      ? "text-[#27272a] hover:text-orange-600"
+                      : "text-white/85 hover:text-orange-400"
                 }`}
               >
                 {link.name}
@@ -138,56 +158,58 @@ function PublicNavbar() {
             ))}
           </nav>
 
-          {/* DESKTOP CTA */}
+          {/* DESKTOP ACTIONS */}
           <div className="hidden items-center gap-3 lg:flex">
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
+              <>
                 <Link
                   to={dashboardPath}
-                  className="inline-flex items-center gap-2 bg-orange-500 px-6 py-3 text-[12px] font-bold text-black transition-all hover:bg-black hover:text-white hover:shadow-lg"
+                  className="inline-flex max-w-[220px] items-center gap-2 bg-orange-500 px-5 py-2.5 text-[12px] font-bold text-black transition-all hover:bg-black hover:text-white"
                 >
-                  <Home size={15} />
-                  {role === "admin" ? "Admin Panel" : "Members Dashboard"}
+                  <Home size={14} className="shrink-0" />
+                  <span className="truncate">{portalName}</span>
                 </Link>
 
                 <button
                   onClick={logout}
-                  className={`px-4 py-3 text-[12px] font-semibold transition ${
+                  className={`px-4 py-2.5 text-[12px] font-semibold transition ${
                     isScrolled
                       ? "border border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                      : "border border-white/30 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
+                      : "border border-white/25 text-white hover:bg-white/10"
                   }`}
                 >
                   Logout
                 </button>
-              </div>
+              </>
             ) : (
-              <div className="flex items-center gap-3">
+              <>
                 <Link
                   to="/login"
-                  className={`border px-5 py-3 text-[12px] font-semibold transition ${
+                  onClick={(event) => handleNav(event, "/login")}
+                  className={`px-4 py-2.5 text-[12px] font-semibold transition ${
                     isScrolled
-                      ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                      : "border-white/30 bg-white/10 text-white backdrop-blur-md hover:bg-white/20"
+                      ? "text-[#27272a] hover:text-orange-600"
+                      : "text-white/85 hover:text-orange-400"
                   }`}
                 >
-                  Login
+                  Sign in
                 </Link>
 
                 <Link
-                  to="/register"
-                  className="inline-flex items-center gap-2 bg-orange-500 px-6 py-3 text-[12px] font-bold text-black transition-all hover:bg-black hover:text-white hover:shadow-lg"
+                  to="/clubs"
+                  onClick={(event) => handleNav(event, "/clubs")}
+                  className="inline-flex items-center gap-2 bg-orange-500 px-5 py-2.5 text-[12px] font-bold text-black transition-all hover:bg-black hover:text-white"
                 >
-                  Get Started
-                  <ArrowRight size={15} />
+                  Join a Club
+                  <ArrowRight size={14} />
                 </Link>
-              </div>
+              </>
             )}
 
             <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
           </div>
 
-          {/* MOBILE THEME SWITCH + MENU */}
+          {/* MOBILE: THEME SWITCH + MENU */}
           <div className="flex items-center gap-1.5 lg:hidden">
             <ThemeToggle variant={isScrolled ? "surface" : "overlay"} />
             <button
@@ -203,76 +225,65 @@ function PublicNavbar() {
           </div>
         </div>
 
-        {/* MOBILE AUTH BAR (always visible under the navbar) */}
-        <div
-          className={`flex items-center gap-2.5 border-t px-4 py-2.5 transition-colors duration-500 lg:hidden ${
-            isScrolled
-              ? "border-[#eee9ee] bg-white/95 backdrop-blur-xl"
-              : "border-white/10 bg-black/60 backdrop-blur-md"
-          }`}
-        >
-          {isAuthenticated ? (
-            <>
-              <Link
-                to={dashboardPath}
-                className="flex flex-1 items-center justify-center gap-2 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
-              >
-                <Home size={14} />
-                {role === "admin" ? "Admin Panel" : "Members Dashboard"}
-              </Link>
-              <button
-                onClick={logout}
-                className={`border px-4 py-2.5 text-[12px] font-semibold transition ${
-                  isScrolled
-                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                    : "border-white/30 text-white hover:bg-white/10"
-                }`}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className={`flex-1 border py-2.5 text-center text-[12px] font-semibold transition ${
-                  isScrolled
-                    ? "border-[#dcd2df] text-[#18181b] hover:bg-zinc-100"
-                    : "border-white/30 text-white hover:bg-white/10"
-                }`}
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="flex flex-1 items-center justify-center gap-1.5 bg-orange-500 py-2.5 text-[12px] font-bold text-black transition hover:bg-black hover:text-white"
-              >
-                Get Started
-                <ArrowRight size={13} />
-              </Link>
-            </>
-          )}
-        </div>
-
         {/* MOBILE MENU */}
         <div
-          className={`border-t border-[#e8e1e8] bg-white shadow-2xl transition-all duration-300 lg:hidden ${
+          className={`border-t border-[#e8e1e8] bg-[#0c0c0e] shadow-2xl transition-all duration-300 lg:hidden ${
             isMobileMenuOpen
-              ? "max-h-[600px] opacity-100"
+              ? "max-h-[560px] opacity-100"
               : "pointer-events-none max-h-0 overflow-hidden opacity-0"
           }`}
         >
-          <div className="space-y-1 px-5 py-5">
+          <div className="px-5 py-4">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.name}
                 to={link.to}
                 onClick={(event) => handleNav(event, link.to)}
-                className="block w-full border-b border-[#eee9ee] py-4 text-left text-sm font-semibold text-[#18181b] transition-colors hover:text-orange-500"
+                className={`block w-full border-b border-white/10 py-3.5 text-left text-sm font-semibold transition-colors ${
+                  isActive(link.to) ? "text-orange-500" : "text-white/90 hover:text-orange-400"
+                }`}
               >
                 {link.name}
               </Link>
             ))}
+
+            <div className="mt-5 flex items-center gap-2.5 pb-2">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    to={dashboardPath}
+                    className="flex flex-1 items-center justify-center gap-2 bg-orange-500 py-3 text-[12px] font-bold text-black"
+                  >
+                    <Home size={14} />
+                    <span className="truncate">{portalName}</span>
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="border border-white/25 px-4 py-3 text-[12px] font-semibold text-white"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={(event) => handleNav(event, "/login")}
+                    className="flex-1 border border-white/25 py-3 text-center text-[12px] font-semibold text-white"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/clubs"
+                    onClick={(event) => handleNav(event, "/clubs")}
+                    className="flex flex-1 items-center justify-center gap-1.5 bg-orange-500 py-3 text-[12px] font-bold text-black"
+                  >
+                    Join a Club
+                    <ArrowRight size={13} />
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>

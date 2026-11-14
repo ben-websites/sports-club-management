@@ -13,7 +13,11 @@ const api = axios.create({
 // Request interceptor to attach JWT token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("scms_token");
+    // Platform console calls use the platform token; everything else uses the
+    // club-scoped session token.
+    const isPlatformCall = (config.url || "").startsWith("/platform");
+    const token = localStorage.getItem(isPlatformCall ? "scms_platform_token" : "scms_token");
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -55,14 +59,33 @@ api.interceptors.response.use(
   },
   (error) => {
     const status = error.response?.status;
+    const code = error.response?.data?.code;
     const url = error.config?.url || "";
+    const path = window.location.pathname;
+
+    // The token is valid but has no club in it yet: send the person to the
+    // club chooser instead of logging them out.
+    if (status === 403 && code === "CLUB_REQUIRED") {
+      if (!path.startsWith("/select-club") && !path.startsWith("/login")) {
+        window.location.href = "/select-club";
+      }
+      return Promise.reject(error);
+    }
 
     if (status === 401) {
-      // If unauthorized on protected route, clean up token
-      if (
-        !window.location.pathname.includes("/login") &&
-        !window.location.pathname.includes("/register") &&
-        window.location.pathname !== "/"
+      const isPlatformCall = url.startsWith("/platform");
+
+      if (isPlatformCall) {
+        localStorage.removeItem("scms_platform_token");
+        localStorage.removeItem("scms_platform_user");
+        if (!path.startsWith("/platform")) {
+          window.location.href = "/platform/login";
+        }
+      } else if (
+        !path.includes("/login") &&
+        !path.includes("/register") &&
+        !path.includes("/platform") &&
+        path !== "/"
       ) {
         localStorage.removeItem("scms_token");
         localStorage.removeItem("scms_user");
